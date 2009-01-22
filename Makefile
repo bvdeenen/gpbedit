@@ -7,3 +7,6 @@ all: $(generated_python_files)
 
 $(generated_python_files) : %_pb2.py : %.proto
 	protoc --python_out=. $<
+
+clean:
+	-rm $(generated_python_files)
