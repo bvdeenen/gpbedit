@@ -1,0 +1,377 @@
+// $Id: jdsclient_protos.proto,v 1.7 2009/01/19 14:32:41 hdehaan Exp $
+package example;
+
+/* IMPORTANT. http://code.google.com/apis/protocolbuffers/docs/proto.html
+
+As you can see, each field in the message definition has a unique numbered tag.
+These tags are used to identify your fields in the message binary format, and
+should not be changed once your message type is in use. Note that tags with
+values in the range 1 through 15 take one byte to encode. Tags in the range 16
+through 2047 take two bytes. So you should reserve the tags 1 through 15 for
+very frequently occurring message elements. Remember to leave some room for
+frequently occurring elements that might be added in the future.
+
+In case you want to update the protocol, you might read the section "Updating
+a message type" in the above mentioned url.
+*/
+
+import "rows.proto";
+import "effects.proto";
+
+message ILNMessage {
+repeated PB_BUTTON buttons = 1;
+repeated PB_CLIP clips = 2;
+repeated PB_CLOCK clocks = 3;
+repeated PB_CONTAINER containers = 4;
+repeated PB_CONTENT contents = 5;
+repeated PB_DATASHEET datasheets = 6;
+repeated PB_DATASOURCE datasources = 7;
+repeated PB_DECISION decisions = 8;
+repeated PB_FORMULA formulas = 9;
+repeated PB_FRAME frames = 10;
+repeated PB_HTML htmls = 11;
+repeated PB_IMAGE  images  = 12;
+repeated PB_LINKPAGE linkpages = 13;
+repeated PB_MOVIE movies = 14;
+repeated PB_OBJECT objects = 15;
+repeated PB_PROGRAM programs = 16;
+repeated PB_RSS rsss = 17;
+repeated PB_SHOCKWAVE shockwaves = 18;
+repeated PB_SLIDESHOW slideshows = 19;
+repeated PB_TABLE tables = 20;
+repeated PB_TEXT texts = 21;
+repeated PB_TICKER tickers = 22;
+repeated PB_TIMER timers = 23;
+repeated PB_ROWCLR rowclrs = 24;
+repeated PB_ROWDEL rowdels = 25;
+repeated PB_ROWINS rowinss = 26;
+repeated PB_ROWUPD rowupds = 27;
+}
+
+message PB_OBJECT {
+	required int32		type			=1; // Object type, see ILNMESSAGE
+	required string		id			=2; // Object id
+	required int32		x			=3; // Left position of the object on the screen relative to its parent
+	required int32		y			=4; // Top position of the object on the screen relative to its parent
+	optional int32		width			=5; // Width of the object. Can also be defined by the field autosize
+	optional int32		height		=6; // Height of the object. Can also be defined by the field autosize
+	optional PB_AUTOSIZE 	autosize		=7;
+	optional Autohide 	autohide		=8;
+	optional PB_ANCHOR 	anchor		=9;
+} // Ready
+
+message PB_BUTTON {
+	required PB_OBJECT	object		=1;
+	optional PB_DATASOURCE	datasource		=2; // Link to data
+	optional string		format		=3; // Format specifier
+	optional ButtonType	buttontype		=4; // Button type
+} // Ready
+
+message PB_CLIP {
+	required PB_OBJECT	object		=1;
+	optional PB_DATASOURCE	datasource		=2;
+	optional string		font			=3; // Font name
+	optional int32		fontsize		=4; // Font size
+	optional PB_ALIGNMENT	alignment		=5; // Alignment of the text
+	optional PB_COLOR		fg_color		=6; // Foreground color
+	optional PB_COLOR		bg_color		=7; // Background color
+	optional float		transparency	=8; // Transparency factor
+	optional Viewtype		viewtype		=9; // View type
+	optional int32		x_indent		=10; // X-indentation of the text
+	optional int32		y_indent		=11; // Y-indentation of the text
+	optional PB_FRAMETYPE	frametype		=12; // Type of frame
+	optional Alternatingtype alternating_type	=13; // Type of alternating
+} // Ready
+
+message PB_CLOCK {
+	required PB_TEXT 		text			=1;
+	optional Clocktype 	clocktype		=2; // Clocktype
+	optional string 		clockformat		=3; // Format specifier
+} // Ready
+
+message PB_CONTAINER {
+	required PB_OBJECT	object		=1;
+	optional PB_DATASOURCE	datasource		=2;
+	optional Alternatingtype alternating_type	=3;
+} // Ready
+
+message PB_CONTENT {
+	required PB_OBJECT 	object		=1;
+} // Ready
+
+message PB_DATASHEET {
+	required PB_TABLE table = 1;
+} // Ready
+
+message PB_DECISION {
+	required PB_TEXT 		text			=1;
+	optional string 		rule			=2; // Rule text
+	optional bool 		decision		=3; // Show object when rule applies true|false
+} // Ready
+
+message PB_FORMULA {
+	required PB_TEXT		text			=1;
+	optional string 		formula		=2; // Formula indicating +|- <seconds>
+} // Ready
+
+message PB_FRAME {
+	required PB_OBJECT	object		=1;
+	optional PB_DATASOURCE	datasource		=2;
+	optional bool		antialias		=3 [default=false]; // Antialias the output
+	optional PB_COLOR		fgcolor		=4;
+	optional PB_COLOR		bgcolor		=5;
+	optional float		transparency	=6;
+	optional PB_FRAMETYPE	frametype		=7;
+	optional Alternatingtype alternating_type	=8; // Type of alternating
+	optional float		rotation		=9;
+} // Ready
+
+message PB_HTML {
+	required PB_OBJECT	object		=1;
+	optional PB_DATASOURCE	datasource		=2;
+	optional string		format		=3; // URL
+	optional float		refreshtime		=4; // Amount of seconds after the URL must be re-read (recurring)
+} // Ready
+
+message PB_IMAGE {
+	required PB_FRAME frame=1;
+	optional string format=2;
+	optional PB_ALIGNMENT alignment = 3;
+	optional Viewtype viewtype=7;
+}
+
+message PB_LINKPAGE {
+	required PB_TEXT text=1;
+} // Ready
+
+message PB_MOVIE {
+	required PB_FRAME 	object		=1;
+	optional string		format		=2; // Image file name
+	optional Viewtype 	viewtype		=4; // View type
+	optional PB_ALIGNMENT 	alignment		=5; // Alignment type
+} // Ready
+
+message PB_PROGRAM {
+	required PB_OBJECT 	object		=1;
+	optional PB_DATASOURCE	datasource		=2;
+	optional string		font			=3; // Properties applicable only depending on the program steps. A TEXT step uses the text properties or its child with an ID "TEXT"
+	optional int32		fontsize		=4; 
+	optional PB_ALIGNMENT	alignment		=5;
+	optional PB_COLOR		fgcolor		=6;
+	optional PB_COLOR		bgcolor		=7;
+	optional float		transparency	=8;
+	optional Viewtype		viewtype		=9;
+	optional int32		x_indent		=10;
+	optional int32		y_indent		=11;
+	optional PB_FRAMETYPE	frametype		=12;
+	optional Alternatingtype alternating_type	=13;
+	optional string		program		=14; // Program name (defined in CONTENT_PROGS and CONTENT_STEPS)
+	optional bool		synchronous		=15; // Show program synchronously with other displays true | false
+} // Ready
+
+message PB_RSS {
+	required PB_TEXT 		text			=1;
+	optional PB_TAGITEMS	tagitems		=2; // Amount of topics to show
+	optional float		refreshtime		=3; // Time in seconds to refresh the URL recurringly
+} // Ready
+
+message PB_SHOCKWAVE {
+	required PB_OBJECT	object		=1;
+	optional PB_DATASOURCE 	datasource		=2;
+	optional string		format		=3; // Shockwave file name
+	optional int32		clipheight		=4; // Real height of the shockwave file related to the objects defined width
+} // Ready
+
+message PB_SLIDESHOW {
+	required PB_FRAME		frame			=1;
+	optional string		format		=2; // Directory name of the folder where all slides resides on disk
+} // Ready
+
+message PB_TABLE {
+	required PB_TEXT		text			=1;
+	optional PB_COLORPATTERN colorpattern	=2; // Lines in the database colour pattern
+} // Ready
+
+message PB_TEXT {
+	required PB_FRAME		frame			=1;
+	optional string		format		=2; // Text to display
+	optional string		font			=3;
+	optional int32		fontsize		=4;
+	optional int32		fontheight		=5;
+	optional PB_ALIGNMENT	alignment		=6;
+	optional Viewtype		viewtype		=7;
+	optional int32		x_indent		=8; //Indentation from the left or right side depending on its alignment
+ 	optional int32		y_indent		=9; //Indentation from the top or bottom side depending on its alignment
+}
+
+message PB_TICKER {
+	required PB_TEXT		text			=1;
+	optional float 		scrollspeed		=2; // Scrolling speed of the ticker line. The speed related to its number is arbitrary
+} // Ready
+
+// Object that will become (in)visible when the current time has reached the countdown time. This countdown time will be calculated using the datasource 
+// field +|- <seconds>. The datasource field must be of type 7 (Date/Time). The object will become visible or invisible depending onthe decision flag
+message PB_TIMER {
+	required PB_OBJECT	object		=1;
+	optional PB_DATASOURCE	datasource		=2;
+	optional string 		formula		=3; // Calculation in the form of +|-<seconds>
+	optional bool 		decision		=4; // Show or hide the object when the countdown time has been reached
+} // Ready
+
+// 
+//
+//
+// embedded within main object messages
+//
+//
+//
+//
+//
+//
+
+message PB_FRAMETYPE {
+	enum Frametype {
+		FRAME_NONE = 0;
+		FRAME_INHERIT = 1;
+		FRAME_BORDER = 2;
+		FRAME_BEVEL = 3;
+	}
+	optional Frametype frametype = 1 ;
+	optional PB_BORDER_LOC borderloc=2; 
+	optional PB_FRAMECURVE_PROPS curve_props = 3;
+	optional PB_BORDER_PROPS border_props = 4;
+	optional PB_BEVEL_PROPS bevel_props = 5;
+}
+
+message PB_BORDER_LOC {
+	optional bool left = 1 ;
+	optional bool top = 2 ;
+	optional bool right = 3 ;
+	optional bool bottom = 4 ;
+}
+
+message PB_FRAMECURVE_PROPS {
+	optional int32 topleft_radius=1 ;
+	optional int32 bottom_left_radius =2 ;
+	optional int32 topright_radius =3;
+	optional int32 bottomright_radius =4 ;
+}
+
+message PB_BORDER_PROPS {
+	optional PB_COLOR bordercolor=1;
+	optional int32 borderthickness=2;
+	optional int32 borderlines=3 [default=1];
+}
+message PB_BEVEL_PROPS {
+	optional PB_COLOR topleftcolor=1;
+	optional PB_COLOR bottomrightcolor=2;
+	optional PB_FRAMECURVE_PROPS curve_props=3;
+}
+
+
+message PB_COLOR {
+	optional int32 red=1;
+	optional int32 green=2;
+	optional int32 blue=3;
+	optional string css_name=4;
+}
+
+message PB_ANCHOR {
+	required string anchor_id=1;
+	optional Anchoring_flags anchor = 6 [default=TOPRIGHT];
+}
+
+message PB_ALIGNMENT {
+	enum Align {
+		TOP=1;
+		VCENTER=2;
+		BOTTOM=3;
+		LEFT=4;
+		HCENTER=5;
+		RIGHT=6;
+		INHERIT=7;
+	}
+	optional Align v_align=1 [default=INHERIT];
+	optional Align h_align=2 [default=INHERIT];
+
+}
+
+message PB_AUTOSIZE {
+	optional bool parent_width=1 [default=false];
+	optional bool parent_height=2 [default=false];
+	optional bool child_width=3 [default=false];
+	optional bool child_height=4 [default=false];
+}
+
+message PB_DATASOURCE {
+	optional string table=1;
+	optional int32 channel= 2;
+	optional int32 field = 3 [default = -1];
+	optional int32 row =4 [default = -1];
+}
+
+// list of colors for alternating in tables
+message PB_COLORPATTERN {
+	repeated PB_COLOR colors=1;
+}
+
+message PB_TAGITEMS {
+	repeated string tagitem=1;
+}
+//
+//
+//
+// enums
+//
+//
+//
+//
+
+enum Autohide {
+	NO_HIDE = 0;
+	HIDE_INHERIT = 1;
+	HIDE_WHEN_NO_DATA = 2;
+	HIDE_WHEN_NO_CHILDREN = 3;
+	HIDE_WHEN_NO_DATA_AND_NO_CHILDREN = 4;
+	HIDE_WHEN_NO_DATA_OR_NO_CHILDREN = 5;
+	HIDE_WHEN_NOT_FIT = 6;
+	HIDE_WHEN_COUNTDOWN_ENDTIME_REACHED = 7;
+	HIDE_WHEN_COUNTDOWN_REACHED = 8;
+}
+
+enum Anchoring_flags {
+	NO_ANCHOR = 0;
+	TOPRIGHT = 1;
+	LEFTBOTTOM = 2;
+}
+
+
+enum Viewtype { 
+	VIEW_INHERIT =0 ;
+	VIEW_NORMAL =1 ;
+	VIEW_TILED =2 ;
+	VIEW_EXTEND_HORVERT =3 ;
+	VIEW_EXTEND_VERT =4 ;
+	VIEW_EXTEND_HOR =5 ;
+	VIEW_STRETCH_HORVERT =6 ;
+	VIEW_STRETCH_KEEP_ASPECTS =7 ;
+}
+
+enum Alternatingtype {
+	NOT_ALTERNATING=0;
+	ALTERNATING=1;
+}
+
+enum Clocktype {
+	DIGITAL=0;
+	ANALOG=1;
+}
+
+enum ButtonType {
+BUTTON_UPDATE=0;
+BUTTON_PAGE_NEXT=1;
+BUTTON_PAGE_PREV=2;
+BUTTON_SUB_PAGE_NEXT=3;
+BUTTON_SUB_PAGE_PREV=4;
+BUTTON_SHOWN_PAGE_PREV=5;
+}

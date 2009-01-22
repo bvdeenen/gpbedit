@@ -1,0 +1,36 @@
+// $Id: rows.proto,v 1.1 2008/12/16 10:04:05 bvandeenen Exp $
+package example;
+
+/* IMPORTANT. http://code.google.com/apis/protocolbuffers/docs/proto.html
+
+As you can see, each field in the message definition has a unique numbered tag.
+These tags are used to identify your fields in the message binary format, and
+should not be changed once your message type is in use. Note that tags with
+values in the range 1 through 15 take one byte to encode. Tags in the range 16
+through 2047 take two bytes. So you should reserve the tags 1 through 15 for
+very frequently occurring message elements. Remember to leave some room for
+frequently occurring elements that might be added in the future.
+
+*/
+
+
+message PB_ROWUPD {
+	optional int32 channel =1;
+	optional int32 row =2;
+	optional int32 field =3;
+	optional string fieldvalue=4;
+}
+
+message PB_ROWINS {
+	required int32 channel = 1;
+	required int32 row = 2;
+}
+message PB_ROWDEL {
+	required int32 channel = 1;
+	required int32 row = 2;
+}
+message PB_ROWCLR {
+	required int32 channel = 1;
+	required int32 row = 2;
+}
+
