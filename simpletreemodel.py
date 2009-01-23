@@ -1,33 +1,28 @@
 #!/usr/bin/env python
 
-"""***************************************************************************
-**
-** Copyright (C) 2005-2005 Trolltech AS. All rights reserved.
-**
-** This file is part of the example classes of the Qt Toolkit.
-**
-** This file may be used under the terms of the GNU General Public
-** License version 2.0 as published by the Free Software Foundation
-** and appearing in the file LICENSE.GPL included in the packaging of
-** this file.  Please review the following information to ensure GNU
-** General Public Licensing requirements will be met:
-** http://www.trolltech.com/products/qt/opensource.html
-**
-** If you are unsure which license is appropriate for your use, please
-** review the following information:
-** http://www.trolltech.com/products/qt/licensing.html or contact the
-** sales department at sales@trolltech.com.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-***************************************************************************"""
-
 import sys
 from PyQt4 import QtCore, QtGui
 
-#import simpletreemodel_rc
+from example_pb2 import *
+from effects_pb2 import *
+from rows_pb2 import *
 
+global type_map, label_map
+type_map={}
+label_map={}
+
+# return a dictionary with value:name pairs for constants in a field object
+# like 
+# {1: 'TYPE_DOUBLE', 2: 'TYPE_FLOAT', 3: ...
+def create_value_map(object,prefix):
+    M={}
+    types = [(getattr(object,m),m) for m in dir(object) \
+        if not callable(getattr(object,m)) and m.startswith(prefix)]
+    for key,value in types:
+        M[key]=value
+    return M    
+
+    
 
 class TreeItem:
     def __init__(self, data, parent=None):
@@ -65,10 +60,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         QtCore.QAbstractItemModel.__init__(self, parent)
 
         rootData = []
-        rootData.append(QtCore.QVariant("Title"))
-        rootData.append(QtCore.QVariant("Summary"))
+        rootData.append(QtCore.QVariant("Name"))
+        rootData.append(QtCore.QVariant("Type"))
+        rootData.append(QtCore.QVariant("Kind"))
+        rootData.append(QtCore.QVariant("Default"))
         self.rootItem = TreeItem(rootData)
-        self.setupModelData(data.split("\n"), self.rootItem)
+        self.analyze_message(data, self.rootItem)
+        
 
     def columnCount(self, parent):
         if parent.isValid():
@@ -137,56 +135,62 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         return parentItem.childCount()
 
-    def setupModelData(self, lines, parent):
-        parents = []
-        indentations = []
-        parents.append(parent)
-        indentations.append(0)
 
-        number = 0
+    # show the structure of a message descriptor
+    def analyze_message(self,descriptor, parent, l=0):
+        global type_map, label_map
+        if not descriptor: return
+        #print " "*l, descriptor.name
+        fields = descriptor.fields_by_number
+        for key,value in fields.items():
 
-        while number < len(lines):
-            position = 0
-            while position < len(lines[number]):
-                if lines[number][position] != " ":
-                    break
-                position += 1
+            if not type_map: type_map=create_value_map(value,"TYPE_")
+            if not label_map: label_map=create_value_map(value,"LABEL_")
 
-            lineData = lines[number][position:].trimmed()
+            if value.message_type: typename = value.message_type.name
+            elif value.enum_type: typename = value.enum_type.name
+            else: typename = ""
 
-            if not lineData.isEmpty():
-                # Read the column data from the rest of the line.
-                columnStrings = lineData.split("\t", QtCore.QString.SkipEmptyParts)
-                columnData = []
-                for column in range(0, len(columnStrings)):
-                    columnData.append(columnStrings[column])
+            if value.default_value : default_value="default:%s" % (value.default_value,)
+            else: default_value=""
 
-                if position > indentations[-1]:
-                    # The last child of the current parent is now the new parent
-                    # unless the current parent has no children.
+            d = []
+            d.append(QtCore.QVariant(value.name))
+            d.append(QtCore.QVariant(type_map[value.type]))
+            d.append(QtCore.QVariant(typename))
+            d.append(QtCore.QVariant(label_map[value.label]))
+            d.append(QtCore.QVariant(default_value))
 
-                    if parents[-1].childCount() > 0:
-                        parents.append(parents[-1].child(parents[-1].childCount() - 1))
-                        indentations.append(position)
+            child = TreeItem(d,parent)
+            parent.appendChild(child)
+            # recurse
+            self.analyze_message(value.message_type, child, l+4)
+            self.show_enum(value.enum_type, child, l+4)
+                
 
-                else:
-                    while position < indentations[-1] and len(parents) > 0:
-                        parents.pop()
-                        indentations.pop()
 
-                # Append a new item to the current parent's list of children.
-                parents[-1].appendChild(TreeItem(columnData, parents[-1]))
-
-            number += 1
+    def show_enum(self, descriptor, parent ,l=0):
+        if not descriptor: return
+        #print " "*l, descriptor.name
+        fields = descriptor.values_by_number
+        for k,value in fields.items():
+            #print " ", " "*l, v.name, v.number
+            d = []
+            d.append(QtCore.QVariant(value.name))
+            d.append(QtCore.QVariant(value.number))
+            d.append(QtCore.QVariant(""))
+            d.append(QtCore.QVariant(""))
+            d.append(QtCore.QVariant(""))
+            child = parent.appendChild(TreeItem(d,parent))
 
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
 
-    f = QtCore.QFile("default.txt")
-    f.open(QtCore.QIODevice.ReadOnly)
-    model = TreeModel(QtCore.QString(f.readAll()))
-    f.close()
+    #f = QtCore.QFile("default.txt")
+    #f.open(QtCore.QIODevice.ReadOnly)
+    model = TreeModel(PB_OBJECT.DESCRIPTOR)
+    #f.close()
 
     view = QtGui.QTreeView()
     view.setModel(model)
