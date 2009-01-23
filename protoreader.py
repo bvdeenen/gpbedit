@@ -8,49 +8,55 @@ global type_map, label_map
 type_map={}
 label_map={}
 
-def create_label_map(object):
-	global label_map
+# return a dictionary with value:name pairs for constants in a field object
+# like 
+# {1: 'TYPE_DOUBLE', 2: 'TYPE_FLOAT', 3: ...
+def create_value_map(object,prefix):
+	M={}
 	types = [(getattr(object,m),m) for m in dir(object) \
-		if not callable(getattr(object,m)) and m.startswith("LABEL_")]
+		if not callable(getattr(object,m)) and m.startswith(prefix)]
 	for key,value in types:
-		label_map[key]=value
-def create_typemap(object):
-	global type_map
-	types = [(getattr(object,m),m) for m in dir(object) \
-		if not callable(getattr(object,m)) and m.startswith("TYPE_")]
-	for key,value in types:
-		type_map[key]=value
+		M[key]=value
+	return M	
+
 	
+# show the structure of a message descriptor
 def show_message(descriptor, l=0):
 	global type_map, label_map
 	if not descriptor: return
 	#print " "*l, descriptor.name
-	fields = descriptor.fields_by_name
-	for k,v in fields.items():
-		if not type_map: create_typemap(v)
-		if not label_map: create_label_map(v)
+	fields = descriptor.fields_by_number
+	for key,value in fields.items():
 
-		typename = ""
-		if v.message_type: typename = v.message_type.name
-		elif v.enum_type: typename = v.enum_type.name
-		default_value=""
-		if v.default_value : default_value="default:%s" % (v.default_value,)
-		print "   ", " "*l, k, type_map[v.type], typename, \
-			label_map[v.label], default_value, "{"
-		
-		# recurse
-		show_message(v.message_type, l+4)
-		show_enum(v.enum_type, l+4)
-		print "   ", " "*l, "}"
+		if not type_map: type_map=create_value_map(value,"TYPE_")
+		if not label_map: label_map=create_value_map(value,"LABEL_")
+
+		if value.message_type: typename = value.message_type.name
+		elif value.enum_type: typename = value.enum_type.name
+		else: typename = ""
+
+		if value.default_value : default_value="default:%s" % (value.default_value,)
+		else: default_value=""
+
+		if not value.message_type and not value.enum_type :
+			print "   ", " "*l, value.name, type_map[value.type], typename, \
+				label_map[value.label], default_value
+		else:		
+			print "   ", " "*l, value.name, type_map[value.type], typename, \
+				label_map[value.label], default_value, "{"
+			# recurse
+			show_message(value.message_type, l+4)
+			show_enum(value.enum_type, l+4)
+			print "   ", " "*l, "} //", value.name
 			
 
 
 def show_enum(descriptor,l=0):
 	if not descriptor: return
 	#print " "*l, descriptor.name
-	fields = descriptor.values_by_name
-	for k in fields.keys():
-		print "  ", " "*l, k
+	fields = descriptor.values_by_number
+	for k,v in fields.items():
+		print " ", " "*l, v.name, v.number
 	
 def test( object ) :
 	print object.name
