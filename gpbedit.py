@@ -29,6 +29,9 @@ class EnumEditor(QWidget):
 		QWidget.__init__(self,parent)
 		vbox=QVBoxLayout(self)
 		self.setLayout(vbox)
+		label=QLabel(self)
+		label.setText("EnumEditor")
+		vbox.addWidget(label)
 		self.namelabel=QLabel(self)
 		vbox.addWidget(self.namelabel)
 
@@ -40,8 +43,6 @@ class EnumEditor(QWidget):
 		self.menubutton = QPushButton(self)
 		self.menubutton.setMenu(self.enumpopup)
 		vbox.addWidget(self.menubutton)
-
-
 
 		vbox.addStretch()
 	
@@ -56,6 +57,31 @@ class EnumEditor(QWidget):
 			action = self.enumpopup.addAction("%d %s" %( value.number, value.name))
 			if  key == itemdata.default_value :
 				self.enumpopup.setActiveAction( action)
+
+class ValueEditor(QWidget):
+	def __init__(self, parent=None):
+		QWidget.__init__(self,parent)
+		vbox=QVBoxLayout(self)
+		self.setLayout(vbox)
+		label=QLabel(self)
+		label.setText("ValueEditor")
+		vbox.addWidget(label)
+
+		self.namelabel=QLabel(self)
+		vbox.addWidget(self.namelabel)
+
+		self.typelabel=QLabel(self)
+		vbox.addWidget(self.typelabel)
+
+		self.editbox=QLineEdit(self)
+		vbox.addWidget(self.editbox)
+		vbox.addStretch()
+	
+	def set_treewidget(self, widgetitem):
+		global type_map
+		itemdata=widgetitem.itemData
+		self.namelabel.setText(itemdata.name)
+		self.typelabel.setText(type_map[itemdata.type])
 
 
 class ItemEditor(QWidget):
@@ -79,6 +105,9 @@ class ItemEditor(QWidget):
 		self.enumeditor=EnumEditor(self.stack)
 		self.stack.addWidget(self.enumeditor)
 
+		self.valueeditor=ValueEditor(self.stack)
+		self.stack.addWidget(self.valueeditor)
+
 
 	def okbuttonclicked(self):
 		print "klik"
@@ -94,6 +123,12 @@ class ItemEditor(QWidget):
 		#print itemdata, column
 		if itemdata.enum_type:
 			self.enumeditor.set_treewidget(widgetitem)
+			self.stack.setCurrentIndex(0)
+		
+		elif not itemdata.message_type:
+			self.valueeditor.set_treewidget(widgetitem)
+			self.stack.setCurrentIndex(1)
+			
 	
 
 class TreeItem(QTreeWidgetItem):
