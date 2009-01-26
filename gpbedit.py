@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim:tw=120
 
 import sys
 from PyQt4 import QtCore, QtGui
@@ -63,6 +64,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         rootData.append(QtCore.QVariant("Name"))
         rootData.append(QtCore.QVariant("Type"))
         rootData.append(QtCore.QVariant("Kind"))
+        rootData.append(QtCore.QVariant("Label"))
         rootData.append(QtCore.QVariant("Default"))
         self.rootItem = TreeItem(rootData)
         self.analyze_message(data, self.rootItem)
@@ -136,7 +138,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         return parentItem.childCount()
 
 
-    # show the structure of a message descriptor
+    # analyze the structure of a gpb message descriptor and create TreeItems
+	# based on that structure
     def analyze_message(self,descriptor, parent, l=0):
         global type_map, label_map
         if not descriptor: return
@@ -151,8 +154,14 @@ class TreeModel(QtCore.QAbstractItemModel):
             elif value.enum_type: typename = value.enum_type.name
             else: typename = ""
 
-            if value.default_value : default_value="default:%s" % (value.default_value,)
-            else: default_value=""
+            if value.default_value : 
+				if value.enum_type:
+					print value.default_value, value.enum_type.values_by_number
+					default_value = value.enum_type.values_by_number[value.default_value].name
+				else:	
+					default_value="default:%s" % (value.default_value,)
+            else: 
+				default_value=""
 
             d = []
             d.append(QtCore.QVariant(value.name))
