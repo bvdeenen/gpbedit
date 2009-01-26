@@ -2,7 +2,8 @@
 # vim:tw=120
 
 import sys
-from PyQt4 import QtCore, QtGui
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 
 from example_pb2 import *
 from effects_pb2 import *
@@ -23,11 +24,81 @@ def create_value_map(object,prefix):
 		M[key]=value
 	return M	
 
+class EnumEditor(QWidget):
+	def __init__(self, parent=None):
+		QWidget.__init__(self,parent)
+		vbox=QVBoxLayout(self)
+		self.setLayout(vbox)
+		self.namelabel=QLabel(self)
+		vbox.addWidget(self.namelabel)
+
+		self.enumtypelabel=QLabel(self)
+		vbox.addWidget(self.enumtypelabel)
+
+		self.enumpopup=QMenu(self)
+
+		self.menubutton = QPushButton(self)
+		self.menubutton.setMenu(self.enumpopup)
+		vbox.addWidget(self.menubutton)
+
+
+
+		vbox.addStretch()
+	
+	def set_treewidget(self, widgetitem):
+		itemdata=widgetitem.itemData
+		self.namelabel.setText(itemdata.name)
+		self.enumtypelabel.setText(itemdata.enum_type.name)
+
+		self.enumpopup.clear()
+
+		for key,value in itemdata.enum_type.values_by_number.items():
+			action = self.enumpopup.addAction("%d %s" %( value.number, value.name))
+			if  key == itemdata.default_value :
+				self.enumpopup.setActiveAction( action)
+
+
+class ItemEditor(QWidget):
+	def __init__(self, parent=None):
+		QWidget.__init__(self,parent)
+		vbox=QVBoxLayout(self)
+		self.setLayout(vbox)
+		self.stack = QStackedWidget(self)
+
+		vbox.addWidget(self.stack)
+		vbox.addStretch()
+
+		self.okbutton=QPushButton(self)
+		self.okbutton.setText("save")
+
+		vbox.addWidget(self.okbutton)
+		QObject.connect(self.okbutton,
+			SIGNAL('clicked()'),
+			self.okbuttonclicked)
+
+		self.enumeditor=EnumEditor(self.stack)
+		self.stack.addWidget(self.enumeditor)
+
+
+	def okbuttonclicked(self):
+		print "klik"
+
+	def make_connections(self, treewidget):
+		QObject.connect(treewidget, 
+			SIGNAL('itemClicked ( QTreeWidgetItem *, int )'),
+			self.slot_treeitem_click)
+
+	
+	def slot_treeitem_click(self, widgetitem, column):
+		itemdata=widgetitem.itemData
+		#print itemdata, column
+		if itemdata.enum_type:
+			self.enumeditor.set_treewidget(widgetitem)
 	
 
-class TreeItem(QtGui.QTreeWidgetItem):
+class TreeItem(QTreeWidgetItem):
 	def __init__(self, descriptor, parent=None, labels=[]):
-		QtGui.QTreeWidgetItem.__init__(self,parent)
+		QTreeWidgetItem.__init__(self,parent)
 		self.itemData = descriptor
 	# analyze the structure of a gpb message descriptor and create TreeItems
 	# based on that structure
@@ -68,32 +139,30 @@ class TreeItem(QtGui.QTreeWidgetItem):
 				TreeItem(value,self, labels)
 			#child.show_enum(value.enum_type, child, l+4)
 
-	def show_enum(self, descriptor, parent ,l=0):
-		if not descriptor: return
-		#print " "*l, descriptor.name
-		fields = descriptor.values_by_number
-		for k,value in fields.items():
-			#print " ", " "*l, v.name, v.number
-			d = []
-			d.append(QtCore.QVariant(value.name))
-			d.append(QtCore.QVariant(value.number))
-			d.append(QtCore.QVariant(""))
-			d.append(QtCore.QVariant(""))
-			d.append(QtCore.QVariant(""))
-			child = parent.appendChild(TreeItem(d,parent))
 
 
-class TreeWidget(QtGui.QTreeWidget):
+class TreeWidget(QTreeWidget):
 	def __init__(self, parent=None):
-		QtGui.QTreeWidget.__init__(self, parent)
+		QTreeWidget.__init__(self, parent)
 
 
 if __name__ == "__main__":
-	app = QtGui.QApplication(sys.argv)
+	app = QApplication(sys.argv)
+	mainwindow=QWidget()
+	layout = QHBoxLayout(mainwindow)
+	mainwindow.setLayout(layout)
 
 	widget = TreeWidget()
 	widget.setWindowTitle("Simple Tree Model")
 	widget.setHeaderLabels( [ "Name" ,"Type" ,"Kind" ,"Label" ,"Default"])
 	widget.addTopLevelItem(TreeItem(PB_OBJECT.DESCRIPTOR))
-	widget.show()
+
+	layout.addWidget(widget)
+
+	editwidget = ItemEditor(mainwindow)
+	layout.addWidget(editwidget)
+
+	editwidget.make_connections(widget)
+
+	mainwindow.show()
 	sys.exit(app.exec_())
