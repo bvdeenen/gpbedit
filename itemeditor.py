@@ -111,8 +111,10 @@ class ValueEditor(QWidget):
 		t=__main__.type_map[self.fd.type]
 
 		if  t == "TYPE_STRING" :
-			s="%s" % (v,)
-			setattr(self.container, self.fd.name, s.encode('utf-8'))
+			o=getattr(self.container, self.fd.name)
+			print type(o)
+			o=unicode(v)
+			setattr(self.container, self.fd.name, str(v))
 		elif t.find("INT") >= 0 :
 			setattr(self.container, self.fd.name, int(v))
 		else:	
