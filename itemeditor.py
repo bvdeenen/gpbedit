@@ -7,6 +7,9 @@ from PyQt4.QtCore import *
 from example_pb2 import *
 from effects_pb2 import *
 from rows_pb2 import *
+from google.protobuf import text_format
+
+import __main__ 
 
 class EnumEditor(QWidget):
 	def __init__(self, parent=None):
@@ -103,15 +106,32 @@ class ItemEditor(QWidget):
 
 	
 	def slot_treeitem_click(self, widgetitem, column):
-		itemdata=widgetitem.itemData
-		#print itemdata, column
-		if itemdata.enum_type:
-			self.enumeditor.set_treewidget(widgetitem)
-			self.stack.setCurrentIndex(0)
-		
-		elif not itemdata.message_type:
-			self.valueeditor.set_treewidget(widgetitem)
-			self.stack.setCurrentIndex(1)
+		global type_map, label_map
+		if type(widgetitem) == __main__.FieldTreeItem :
+			# edit a simple type
+			fd = widgetitem.field_desc
+			container = widgetitem.parent().gpbitem
+			value=getattr(container,fd.name)
+			print "simple type" , __main__.type_map[fd.type]
+			print "container=",type(container), "value=",value
+			setattr(container, fd.name, value+1)
+
+			widgetitem.set_column_data()
+			widgetitem.treeWidget().emit_gpbupdate()		
+
+			
+
+		elif type(widgetitem) == __main__.MessageTreeItem :
+			pass
+
+		#	# it's a message type
+		#	self.enumeditor.set_treewidget(widgetitem)
+		#	self.stack.setCurrentIndex(0)
+
+		#
+		#elif not itemdata.DESCRIPTOR.message_type:
+		#	self.valueeditor.set_treewidget(widgetitem)
+		#	self.stack.setCurrentIndex(1)
 			
 	
 
