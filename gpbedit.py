@@ -42,13 +42,10 @@ class FieldTreeItem(QTreeWidgetItem):
 		typename=type_map[field_desc.type]
 		default_value=field_desc.default_value
 		value=object
+
 		if field_desc.enum_type:
 			default_value = field_desc.enum_type.values_by_number[default_value].name
 			value=field_desc.enum_type.values_by_number[value].name
-
-		#if value.message_type: typename = value.message_type.name
-		#elif value.enum_type: typename = value.enum_type.name
-		#else: typename = type_map[value.type]
 
 		labels=[field_desc.name, field_desc.type,typename,label_map[field_desc.label], 
 			default_value, value]
@@ -59,6 +56,9 @@ class MessageTreeItem(QTreeWidgetItem):
 	def __init__(self, field_desc, gpbitem, parent=None):
 		QTreeWidgetItem.__init__(self,parent)
 		self.setExpanded(True)
+		self.field_desc = field_desc
+		self.gpbitem = gpbitem
+		self.createFieldCategories()
 
 		global type_map, label_map
 
@@ -81,6 +81,30 @@ class MessageTreeItem(QTreeWidgetItem):
 					MessageTreeItem(field_desc, object, self)
 			else:
 				FieldTreeItem(field_desc, object, self)
+
+	def createNestedMessage(self, fieldname):
+		fd= self.repeated_fields[fieldname]
+		if fd.type==11 : # message
+			if fd.label==3 : # repeated
+				o = getattr(self.gpbitem, fieldname)
+				gpbmessage = o.add()
+				MessageTreeItem(fd,gpbmessage, self)
+		self.treeWidget().emit_gpbupdate()		
+	
+	def createFieldCategories(self):
+		self.required_fields={}
+		self.optional_fields={}
+		self.repeated_fields={}
+		for fieldname, fd in self.gpbitem.DESCRIPTOR.fields_by_name.items():
+			if fd.label == 1 : #optional
+				self.optional_fields[fieldname] = fd
+			elif fd.label ==2 : # required	
+				self.required_fields[fieldname] = fd
+			elif fd.label==3: #repeated	
+				self.repeated_fields[fieldname] = fd
+			else:
+				print "unknown label"
+				sys.exit(1)
 
 		
 
@@ -138,7 +162,7 @@ if __name__ == "__main__":
 	editwidget.make_connections(treewidget)
 
 	mainwindow.show()
-	#treewidget.emit_gpbupdate()
+	gpb_top.createNestedMessage('texts')
 
 	mainwindow.setMinimumSize(QSize(1000,800))
 	sys.exit(app.exec_())

@@ -17,7 +17,7 @@ class DebugWidget(QLabel):
 	# slot called when TreeWidget has updated the gpb_top object
 
 	def slot_gpbobject_updated(self, gpb_top):	
-		print "hoi"
-		self.setText(text_format.MessageToString(gpb_top.itemData))
+		print "hoi", gpb_top
+		self.setText(text_format.MessageToString(gpb_top.gpbitem))
 
 
