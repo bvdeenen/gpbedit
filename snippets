@@ -1,42 +1,38 @@
-    def xsetupModelData(self, lines, parent):
-        parents = []
-        indentations = []
-        parents.append(parent)
-        indentations.append(0)
+	# analyze the structure of a gpb message descriptor and create TreeItems
+	# based on that structure
+	#def analyze_message(self,descriptor, parent, l=0):
+		#if not labels: self.setText(0,descriptor.name)
+		#else: for i,l in enumerate(labels): self.setText(i,str(l))
 
-        number = 0
+		if not descriptor: return
+		if not hasattr(descriptor,'fields_by_number'): return
 
-        while number < len(lines):
-            position = 0
-            while position < len(lines[number]):
-                if lines[number][position] != " ":
-                    break
-                position += 1
+		global type_map, label_map
 
-            lineData = lines[number][position:].trimmed()
+		fields = descriptor.fields_by_number
+		for key,value in fields.items():
 
-            if not lineData.isEmpty():
-                # Read the column data from the rest of the line.
-                columnStrings = lineData.split("\t", QtCore.QString.SkipEmptyParts)
-                columnData = []
-                for column in range(0, len(columnStrings)):
-                    columnData.append(columnStrings[column])
+			if not type_map: type_map=create_value_map(value,"TYPE_")
+			if not label_map: label_map=create_value_map(value,"LABEL_")
 
-                if position > indentations[-1]:
-                    # The last child of the current parent is now the new parent
-                    # unless the current parent has no children.
+			if value.message_type: typename = value.message_type.name
+			elif value.enum_type: typename = value.enum_type.name
+			else: typename = type_map[value.type]
 
-                    if parents[-1].childCount() > 0:
-                        parents.append(parents[-1].child(parents[-1].childCount() - 1))
-                        indentations.append(position)
+			if value.default_value : 
+				if value.enum_type:
+					default_value = value.enum_type.values_by_number[value.default_value].name
+				else:	
+					default_value=str(value.default_value)
+			else: 
+				default_value=""
 
-                else:
-                    while position < indentations[-1] and len(parents) > 0:
-                        parents.pop()
-                        indentations.pop()
+			labels=[value.name, value.type,typename,label_map[value.label], default_value]
+			# recurse
+			if ( value.message_type ) :
+				TreeItem(value, self,labels)
+			else:	
+				TreeItem(value,self, labels)
+			#child.show_enum(value.enum_type, child, l+4)
 
-                # Append a new item to the current parent's list of children.
-                parents[-1].appendChild(TreeItem(columnData, parents[-1]))
-
-            number += 1
 

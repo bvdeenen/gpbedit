@@ -18,6 +18,6 @@ class DebugWidget(QLabel):
 
 	def slot_gpbobject_updated(self, gpb_top):	
 		print "hoi"
-		self.setText(text_format.MessageToString(gpb_top))
+		self.setText(text_format.MessageToString(gpb_top.itemData))
 
 
