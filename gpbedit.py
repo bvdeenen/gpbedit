@@ -28,6 +28,7 @@ def create_value_map(object,prefix):
 		if not callable(getattr(object,m)) and m.startswith(prefix)]
 	for key,value in types:
 		M[key]=value
+	print M
 	return M	
 
 

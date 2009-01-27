@@ -11,6 +11,28 @@ from google.protobuf import text_format
 
 import __main__ 
 
+class MessageEditor(QWidget):
+	def __init__(self, parent=None):
+		QWidget.__init__(self,parent)
+		vbox=QVBoxLayout(self)
+		self.setLayout(vbox)
+		label=QLabel(self)
+		label.setText("MessageEditor")
+		vbox.addWidget(label)
+		self.namelabel=QLabel(self)
+		vbox.addWidget(self.namelabel)
+
+
+		vbox.addStretch()
+	
+	def set_treewidget(self, widgetitem):
+		global type_map, label_map
+
+		fd = widgetitem.field_desc
+		container = widgetitem.parent().gpbitem
+
+		self.namelabel.setText(fd.name)
+
 class EnumEditor(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)
@@ -34,15 +56,19 @@ class EnumEditor(QWidget):
 		vbox.addStretch()
 	
 	def set_treewidget(self, widgetitem):
-		itemdata=widgetitem.itemData
-		self.namelabel.setText(itemdata.name)
-		self.enumtypelabel.setText(itemdata.enum_type.name)
+		global type_map, label_map
 
+		fd = widgetitem.field_desc
+		container = widgetitem.parent().gpbitem
+		descriptor=container.DESCRIPTOR
+
+		self.namelabel.setText(fd.name)
+		self.enumtypelabel.setText(descriptor.enum_type.name)
 		self.enumpopup.clear()
 
-		for key,value in itemdata.enum_type.values_by_number.items():
+		for key,value in descriptor.enum_type.values_by_number.items():
 			action = self.enumpopup.addAction("%d %s" %( value.number, value.name))
-			if  key == itemdata.default_value :
+			if  key == descriptor.default_value :
 				self.enumpopup.setActiveAction( action)
 
 class ValueEditor(QWidget):
@@ -66,9 +92,12 @@ class ValueEditor(QWidget):
 	
 	def set_treewidget(self, widgetitem):
 		global type_map
-		itemdata=widgetitem.itemData
-		self.namelabel.setText(itemdata.name)
-		self.typelabel.setText(type_map[itemdata.type])
+		fd = widgetitem.field_desc
+		container = widgetitem.parent().gpbitem
+		descriptor=container.DESCRIPTOR
+
+		self.namelabel.setText(fd.name)
+		self.typelabel.setText(__main__.type_map[fd.type])
 
 
 class ItemEditor(QWidget):
@@ -95,6 +124,9 @@ class ItemEditor(QWidget):
 		self.valueeditor=ValueEditor(self.stack)
 		self.stack.addWidget(self.valueeditor)
 
+		self.messageeditor=MessageEditor(self.stack)
+		self.stack.addWidget(self.messageeditor)
+
 
 	def okbuttonclicked(self):
 		print "klik"
@@ -107,26 +139,30 @@ class ItemEditor(QWidget):
 	
 	def slot_treeitem_click(self, widgetitem, column):
 		global type_map, label_map
+		fd = widgetitem.field_desc
+
+		container = widgetitem.parent().gpbitem
 		if type(widgetitem) == __main__.FieldTreeItem :
 			# edit a simple type
-			fd = widgetitem.field_desc
-			container = widgetitem.parent().gpbitem
 			value=getattr(container,fd.name)
-			print "simple type" , __main__.type_map[fd.type]
-			print "container=",type(container), "value=",value
-			setattr(container, fd.name, value+1)
-
-			widgetitem.set_column_data()
-			widgetitem.treeWidget().emit_gpbupdate()		
-
+			if fd.type == 14:
+				print "simple ENUM type" , __main__.type_map[fd.type]
+				self.enumeditor.set_treewidget(widgetitem)
+				self.stack.setCurrentIndex(0)
 			
+			else:
+				print "simple  type" , __main__.type_map[fd.type]
+				setattr(container, fd.name, value+1)
+				widgetitem.set_column_data()
+
+				self.valueeditor.set_treewidget(widgetitem)
+				self.stack.setCurrentIndex(1)
+
+
 
 		elif type(widgetitem) == __main__.MessageTreeItem :
-			pass
-
-		#	# it's a message type
-		#	self.enumeditor.set_treewidget(widgetitem)
-		#	self.stack.setCurrentIndex(0)
+			self.messageeditor.set_treewidget(widgetitem)
+			self.stack.setCurrentIndex(2)
 
 		#
 		#elif not itemdata.DESCRIPTOR.message_type:
