@@ -90,14 +90,37 @@ class ValueEditor(QWidget):
 		vbox.addWidget(self.editbox)
 		vbox.addStretch()
 	
+		QObject.connect(self.editbox, SIGNAL("editingFinished()"),
+			self.editFinished)
+
 	def set_treewidget(self, widgetitem):
-		global type_map
+		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
 		container = widgetitem.parent().gpbitem
 		descriptor=container.DESCRIPTOR
+		self.fd = fd
+		self.container= container
 
 		self.namelabel.setText(fd.name)
 		self.typelabel.setText(__main__.type_map[fd.type])
+		#print getattr(container, fd.name), "****"
+		self.editbox.setText( str(getattr(container, fd.name)))
+
+	def editFinished(self) :
+		v = self.editbox.text()
+		t=__main__.type_map[self.fd.type]
+
+		if  t == "TYPE_STRING" :
+			s=""
+			s+=v
+			setattr(self.container, self.fd.name, s)
+		elif t.find("INT") >= 0 :
+			setattr(self.container, self.fd.name, int(v))
+		else:	
+			setattr(self.container, self.fd.name, float(v))
+		self.widgetitem.set_column_data()
+		self.widgetitem.treeWidget().emit_gpbupdate()
+
 
 
 class ItemEditor(QWidget):
@@ -142,19 +165,17 @@ class ItemEditor(QWidget):
 		fd = widgetitem.field_desc
 
 		container = widgetitem.parent().gpbitem
+		typename = __main__.type_map[fd.type]
+
 		if type(widgetitem) == __main__.FieldTreeItem :
 			# edit a simple type
 			value=getattr(container,fd.name)
 			if fd.type == 14:
-				print "simple ENUM type" , __main__.type_map[fd.type]
 				self.enumeditor.set_treewidget(widgetitem)
 				self.stack.setCurrentIndex(0)
 			
 			else:
-				print "simple  type" , __main__.type_map[fd.type]
-				setattr(container, fd.name, value+1)
 				widgetitem.set_column_data()
-
 				self.valueeditor.set_treewidget(widgetitem)
 				self.stack.setCurrentIndex(1)
 

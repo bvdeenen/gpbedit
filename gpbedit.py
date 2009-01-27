@@ -65,7 +65,7 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.setExpanded(True)
 		self.field_desc = field_desc
 		self.gpbitem = gpbitem
-		print "Creating MessageTreeItem", gpbitem.DESCRIPTOR.full_name
+		#print "Creating MessageTreeItem", gpbitem.DESCRIPTOR.full_name
 		self.createFieldCategories()
 
 		self.createRequiredFields()
@@ -97,9 +97,9 @@ class MessageTreeItem(QTreeWidgetItem):
 				gpbmessage = o.add()
 				MessageTreeItem(fd, gpbmessage, self)
 			else: # optional or required
-				print "***", self.gpbitem.DESCRIPTOR.name, "***"
+				#print "***", self.gpbitem.DESCRIPTOR.name, "***"
 				o = getattr(self.gpbitem, fieldname)
-				print fd.type, fd.label, fd.name, fieldname, "'", type(o),"'"
+				#print fd.type, fd.label, fd.name, fieldname, "'", type(o),"'"
 				MessageTreeItem(fd, o, self)
 				
 		self.treeWidget().emit_gpbupdate()		
@@ -109,7 +109,7 @@ class MessageTreeItem(QTreeWidgetItem):
 			if fd.label != 2 : continue # not required
 			print fieldname, self.gpbitem.DESCRIPTOR.name
 			if fd.type == 11 : #message
-				print "hier", fd.name
+				#print "hier", fd.name
 				self.createNestedMessage(fieldname)
 			else: # non-message type
 				o=getattr(self.gpbitem, fieldname)
@@ -119,7 +119,7 @@ class MessageTreeItem(QTreeWidgetItem):
 
 
 	def createFieldCategories(self):
-		print "createFieldCategories", self.gpbitem
+		#print "createFieldCategories", self.gpbitem
 		self.required_fields={}
 		self.optional_fields={}
 		self.repeated_fields={}
@@ -205,6 +205,6 @@ if __name__ == "__main__":
 	message.rsss[0].text.font="Arial"
 	treewidget.emit_gpbupdate()
 
-	print text_format.MessageToString(message)
+	#print text_format.MessageToString(message)
 	mainwindow.setMinimumSize(QSize(1000,800))
 	sys.exit(app.exec_())
