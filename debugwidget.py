@@ -5,11 +5,6 @@ import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from example_pb2 import *
-from effects_pb2 import *
-from rows_pb2 import *
-
-
 
 class DebugWidget(QLabel):
 	def __init__(self, parent=None):

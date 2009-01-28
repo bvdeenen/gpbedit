@@ -4,11 +4,6 @@ import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from example_pb2 import *
-from effects_pb2 import *
-from rows_pb2 import *
-from google.protobuf import text_format
-
 import __main__ 
 
 
@@ -32,20 +27,31 @@ class EnumEditor(QWidget):
 		self.menubutton.setMenu(self.enumpopup)
 		vbox.addWidget(self.menubutton)
 
+		QObject.connect(self.enumpopup, SIGNAL("triggered(QAction *)"),
+			self.pick_enum)
+
 		vbox.addStretch()
 	
 	def set_treewidget(self, widgetitem):
 
-		fd = widgetitem.field_desc
-		container = widgetitem.parent().gpbitem
-		descriptor=container.DESCRIPTOR
+		self.widgetitem = widgetitem
+		self.fd = widgetitem.field_desc
 
-		self.namelabel.setText(fd.name)
-		self.enumtypelabel.setText(descriptor.enum_type.name)
+		self.namelabel.setText(self.fd.name)
+		self.enumtypelabel.setText(self.fd.enum_type.name)
 		self.enumpopup.clear()
 
-		for key,value in descriptor.enum_type.values_by_number.items():
+		for key,value in self.fd.enum_type.values_by_number.items():
 			action = self.enumpopup.addAction("%d %s" %( value.number, value.name))
-			if  key == descriptor.default_value :
+			if  key == self.fd.default_value :
 				self.enumpopup.setActiveAction( action)
+	
+	def pick_enum(self, action):
+		n,name = str(action.text()).split(None,1)
+
+		container = self.widgetitem.parent().gpbitem
+		setattr(container, self.fd.name, int(n))
+
+		self.widgetitem.set_column_data()
+		self.widgetitem.treeWidget().emit_gpbupdate()
 

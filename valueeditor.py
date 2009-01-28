@@ -4,14 +4,7 @@ import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from example_pb2 import *
-from effects_pb2 import *
-from rows_pb2 import *
-from google.protobuf import text_format
-
 import FD
-
-import __main__ 
 
 class ValueEditor(QWidget):
 	def __init__(self, parent=None):

@@ -5,12 +5,8 @@ import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from example_pb2 import *
-from effects_pb2 import *
-from rows_pb2 import *
-from google.protobuf import text_format
-
 import __main__ 
+
 from valueeditor import *
 from messageeditor import *
 from enumeditor import *
@@ -20,6 +16,7 @@ import FD
 class ItemEditor(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)
+
 		vbox=QVBoxLayout(self)
 		self.setLayout(vbox)
 		self.stack = QStackedWidget(self)
@@ -54,6 +51,7 @@ class ItemEditor(QWidget):
 			self.slot_treeitem_click)
 
 	
+	
 	def slot_treeitem_click(self, widgetitem, column):
 		fd = widgetitem.field_desc
 
@@ -64,18 +62,18 @@ class ItemEditor(QWidget):
 			value=getattr(container,fd.name)
 			if fd.type == FD.ENUM:
 				self.enumeditor.set_treewidget(widgetitem)
-				self.stack.setCurrentIndex(0)
+				self.stack.setCurrentWidget(self.enumeditor)
 			
 			else:
 				widgetitem.set_column_data()
 				self.valueeditor.set_treewidget(widgetitem)
-				self.stack.setCurrentIndex(1)
+				self.stack.setCurrentWidget(self.valueeditor)
 
 
 
 		elif type(widgetitem) == __main__.MessageTreeItem :
 			self.messageeditor.set_treewidget(widgetitem)
-			self.stack.setCurrentIndex(2)
+			self.stack.setCurrentWidget(self.messageeditor)
 
 			
 	
