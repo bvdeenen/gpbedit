@@ -51,9 +51,10 @@ class FieldTreeItem(QTreeWidgetItem):
 			default_value=self.field_desc.default_value.decode('utf-8')
 			value = getattr(container, self.field_desc.name).decode('utf-8')
 		elif typename=="TYPE_ENUM":
+			value = getattr(container, self.field_desc.name)
+			value=self.field_desc.enum_type.values_by_number[value].name.decode('utf-8')
 			default_choice=self.field_desc.default_value
 			default_value = self.field_desc.enum_type.values_by_number[default_choice].name
-			value=self.field_desc.enum_type.values_by_number[value].name.decode('utf-8')
 		else:	
 			default_value=unicode(self.field_desc.default_value)
 			value = unicode(getattr(container, self.field_desc.name))
@@ -93,6 +94,13 @@ class MessageTreeItem(QTreeWidgetItem):
 					MessageTreeItem(field_desc, object, self)
 			else:
 				FieldTreeItem(field_desc, self)
+	
+	def add_gpb_child(self, fd):
+		if fd.type == 11:
+			self.createNestedMessage(fd.name)
+		else:	
+			FieldTreeItem(fd, self)
+		
 
 	def createNestedMessage(self, fieldname):
 		fd= self.gpbitem.DESCRIPTOR.fields_by_name[fieldname]
@@ -206,6 +214,8 @@ if __name__ == "__main__":
 	treewidget.emit_gpbupdate()
 
 	treewidget.expandItem(gpb_top)
+	treewidget.setColumnWidth(0,220)
+	treewidget.setColumnWidth(1,60)
 
 	mainwindow.setMinimumSize(QSize(1000,800))
 	sys.exit(app.exec_())
