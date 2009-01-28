@@ -56,11 +56,10 @@ class ItemEditor(QWidget):
 		global type_map, label_map
 		fd = widgetitem.field_desc
 
-		container = widgetitem.parent().gpbitem
-		typename = __main__.type_map[fd.type]
 
 		if type(widgetitem) == __main__.FieldTreeItem :
 			# edit a simple type
+			container = widgetitem.parent().gpbitem
 			value=getattr(container,fd.name)
 			if fd.type == 14:
 				self.enumeditor.set_treewidget(widgetitem)

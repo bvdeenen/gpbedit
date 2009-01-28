@@ -64,8 +64,12 @@ class MessageEditor(QWidget):
 		global type_map, label_map
 		self.widgetitem=widgetitem
 		self.container = widgetitem.gpbitem
-		self.fd = widgetitem.field_desc
-		self.namelabel.setText(widgetitem.field_desc.name)
+		if widgetitem.field_desc:
+			self.fd = widgetitem.field_desc
+			self.namelabel.setText(widgetitem.field_desc.name)
+		else:	
+			self.fd = None
+			self.namelabel.setText("no parent")
 
 		self.unfilled_optional_fields={}
 
