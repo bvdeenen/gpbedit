@@ -114,8 +114,6 @@ class MessageTreeItem(QTreeWidgetItem):
 			if fd.type == 11 : #message
 				self.createNestedMessage(fieldname)
 			else: # non-message type
-				o=getattr(self.gpbitem, fieldname)
-				o=fd.default_value
 				FieldTreeItem(fd, self)
 				
 
