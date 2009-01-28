@@ -1,0 +1,5 @@
+rootmessage : example_pb2.ILNMessage
+protofile   : example.proto
+protofile   : rows.proto
+protofile   : effects.proto
+

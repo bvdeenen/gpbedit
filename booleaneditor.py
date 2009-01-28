@@ -33,15 +33,13 @@ class BooleanEditor(QWidget):
 		fd = widgetitem.field_desc
 		container = widgetitem.parent().gpbitem
 		descriptor=container.DESCRIPTOR
-		self.fd = fd
-		self.container= container
 
-		t=FD.type_map[self.fd.type]
+		t=FD.type_map[fd.type]
 		self.typelabel.setText(t)
 
 		self.namelabel.setText(fd.name)
 
-		value = getattr(self.container, self.fd.name)
+		value = getattr(container, fd.name)
 		if value :
 			self.checkbox.setCheckState( Qt.Checked)
 		else:	
@@ -53,8 +51,10 @@ class BooleanEditor(QWidget):
 	def editFinished(self, state) :
 		v = self.checkbox.checkState()
 		if v : v=1
-		setattr(self.container, self.fd.name, v)
 
+		fd = self.widgetitem.field_desc
+		container = self.widgetitem.parent().gpbitem
+		setattr(container, fd.name, v)
 
 		self.widgetitem.set_column_data()
 		self.widgetitem.treeWidget().emit_gpbupdate()

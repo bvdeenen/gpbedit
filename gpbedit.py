@@ -5,15 +5,12 @@ import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-import example_pb2 
-import effects_pb2
-import rows_pb2 
-
 from debugwidget import *
 from itemeditor import *
 
 import google
 import FD
+import settings
 
 class FieldTreeItem(QTreeWidgetItem):
 	""" for tree items that represent a non-message field of a message object
@@ -166,6 +163,7 @@ class TreeWidget(QTreeWidget):
 		filename = QFileDialog.getSaveFileName(self, "save gpb file", self.filename)
 		if not filename : return
 		self.filename=filename
+
 		f=open(filename,"wb")
 		f.write(self.topLevelItem(0).gpbitem.SerializeToString())
 		f.close()
@@ -175,7 +173,7 @@ class TreeWidget(QTreeWidget):
 		if not filename: return
 		self.filename=filename
 		f=open(filename,"rb")
-		gpb=example_pb2.ILNMessage()
+		gpb=settings.empty_root_message()
 		gpb.ParseFromString( f.read())
 		f.close()
 		global editwidget
@@ -199,9 +197,9 @@ if __name__ == "__main__":
 	treewidget.setWindowTitle("Google Protocol Object Editor")
 	treewidget.setHeaderLabels( [ "Name" ,"Type" ,"Kind" ,"Label" ,"Default", "Value"])
 
-	message=example_pb2.ILNMessage()
-
-	gpb_top = MessageTreeItem( None, message)
+	settings.read_settings_file()
+	
+	gpb_top = MessageTreeItem( None, settings.gpb_root)
 	treewidget.addTopLevelItem(gpb_top)
 
 	layout.addWidget(treewidget, 1)
@@ -242,17 +240,6 @@ if __name__ == "__main__":
 	mainwindow.setMinimumSize(QSize(1000,800))
 
 	mainwindow.show()
-
-	# some more test message stuff
-	gpb_top.createNestedMessage('texts')
-	gpb_top.createNestedMessage('rsss')
-	gpb_top.createNestedMessage('datasheets')
-	gpb_top.createNestedMessage('rsss')
-
-
-
-	message.rsss[0].text.frame.object.id="hallo"
-	message.rsss[0].text.font="Arial"
 	treewidget.emit_gpbupdate()
 
 

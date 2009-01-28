@@ -35,22 +35,23 @@ class EnumEditor(QWidget):
 	def set_treewidget(self, widgetitem):
 
 		self.widgetitem = widgetitem
-		self.fd = widgetitem.field_desc
+		fd = self.widgetitem.field_desc
 
-		self.namelabel.setText(self.fd.name)
-		self.enumtypelabel.setText(self.fd.enum_type.name)
+		self.namelabel.setText(fd.name)
+		self.enumtypelabel.setText(fd.enum_type.name)
 		self.enumpopup.clear()
 
-		for key,value in self.fd.enum_type.values_by_number.items():
+		for key,value in fd.enum_type.values_by_number.items():
 			action = self.enumpopup.addAction("%d %s" %( value.number, value.name))
-			if  key == self.fd.default_value :
+			if  key == fd.default_value :
 				self.enumpopup.setActiveAction( action)
 	
 	def pick_enum(self, action):
 		n,name = str(action.text()).split(None,1)
 
+		fd = self.widgetitem.field_desc
 		container = self.widgetitem.parent().gpbitem
-		setattr(container, self.fd.name, int(n))
+		setattr(container, fd.name, int(n))
 
 		self.widgetitem.set_column_data()
 		self.widgetitem.treeWidget().emit_gpbupdate()

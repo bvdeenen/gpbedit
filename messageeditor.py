@@ -47,16 +47,15 @@ class MessageEditor(QWidget):
 
 	def add_gpb_child(self, action):
 		field_name = str(action.text())
+
+		container = self.widgetitem.gpbitem
 		
-		fd = self.container.DESCRIPTOR.fields_by_name[field_name]
+		fd = container.DESCRIPTOR.fields_by_name[field_name]
 		self.widgetitem.add_gpb_child(fd)
-		self.set_treewidget(self.widgetitem) # for rebuilding the popups
-
-
 	
 	def set_treewidget(self, widgetitem):
 		self.widgetitem=widgetitem
-		self.container = widgetitem.gpbitem
+		container = self.widgetitem.gpbitem
 		if widgetitem.field_desc:
 			self.fd = widgetitem.field_desc
 			self.namelabel.setText(widgetitem.field_desc.name)
@@ -67,7 +66,7 @@ class MessageEditor(QWidget):
 		self.unfilled_optional_fields={}
 
 		for name,fd in  widgetitem.optional_fields.items():
-			if not self.container.HasField(name):
+			if not container.HasField(name):
 				self.unfilled_optional_fields[name]=fd
 			
 		self.set_popup_menu(self.repeatedpopup, widgetitem.repeated_fields)

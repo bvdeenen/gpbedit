@@ -32,37 +32,35 @@ class ValueEditor(QWidget):
 		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
 		container = widgetitem.parent().gpbitem
-		descriptor=container.DESCRIPTOR
-		self.fd = fd
-		self.container= container
 
-		t=FD.type_map[self.fd.type]
-		self.typelabel.setText(t)
+		self.typelabel.setText(FD.type_map[fd.type])
 
 		self.namelabel.setText(fd.name)
-		if self.fd.type==FD.STRING:
+		if fd.type==FD.STRING:
 			self.editbox.setText( getattr(container, fd.name).decode('utf-8'))
 		else:	
 			self.editbox.setText( str(getattr(container, fd.name)))
 
-		if self.fd.type in [FD.DOUBLE, FD.FLOAT] :
+		if fd.type in [FD.DOUBLE, FD.FLOAT] :
 			self.editbox.setValidator( QDoubleValidator(self.editbox))
-		elif self.fd.type in [FD.UINT32, FD.UINT64]:
+		elif fd.type in [FD.UINT32, FD.UINT64]:
 			self.editbox.setValidator( QIntValidator(self.editbox0, 0x7fffffff))
-		elif self.fd.type != FD.STRING:
+		elif fd.type != FD.STRING:
 			self.editbox.setValidator( QIntValidator(self.editbox))
+		self.editbox.selectAll()
 		self.editbox.setFocus()	
 
 	def editFinished(self) :
 		v = unicode(self.editbox.text())
+		fd = self.widgetitem.field_desc
+		container = self.widgetitem.parent().gpbitem
 
-		if  self.fd.type == FD.STRING :
-			setattr(self.container, self.fd.name, v.encode('utf-8'))
-
-		elif self.fd.type in [FD.DOUBLE, FD.FLOAT]:
-			setattr(self.container, self.fd.name, float(v))
+		if  fd.type == FD.STRING :
+			setattr(container, fd.name, v.encode('utf-8'))
+		elif fd.type in [FD.DOUBLE, FD.FLOAT]:
+			setattr(container, fd.name, float(v))
 		else:
-			setattr(self.container, self.fd.name, int(v))
+			setattr(container, fd.name, int(v))
 
 		self.widgetitem.set_column_data()
 		self.widgetitem.treeWidget().emit_gpbupdate()
