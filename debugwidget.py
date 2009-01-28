@@ -6,9 +6,10 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 
-class DebugWidget(QLabel):
+class DebugWidget(QTextEdit):
 	def __init__(self, parent=None):
-		QLabel.__init__(self, parent)
+		QTextEdit.__init__(self, parent)
+		self.setReadOnly(True)
 
 	# slot called when TreeWidget has updated the gpb_top object
 	def slot_gpbobject_updated(self, gpb_top):	

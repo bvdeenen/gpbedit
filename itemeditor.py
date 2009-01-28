@@ -10,6 +10,7 @@ import __main__
 from valueeditor import *
 from messageeditor import *
 from enumeditor import *
+from booleaneditor import *
 
 import FD
 
@@ -37,6 +38,9 @@ class ItemEditor(QWidget):
 		self.messageeditor=MessageEditor(self.stack)
 		self.stack.addWidget(self.messageeditor)
 
+		self.booleaneditor=BooleanEditor(self.stack)
+		self.stack.addWidget(self.booleaneditor)
+
 
 	def no_edit(self):
 		self.stack.setCurrentWidget(self.blankeditor)
@@ -44,6 +48,9 @@ class ItemEditor(QWidget):
 	def make_connections(self, treewidget):
 		QObject.connect(treewidget, 
 			SIGNAL('itemClicked ( QTreeWidgetItem *, int )'),
+			self.slot_treeitem_click)
+		QObject.connect(treewidget, 
+			SIGNAL('itemActivated ( QTreeWidgetItem *, int )'),
 			self.slot_treeitem_click)
 
 	
@@ -59,6 +66,10 @@ class ItemEditor(QWidget):
 			if fd.type == FD.ENUM:
 				self.enumeditor.set_treewidget(widgetitem)
 				self.stack.setCurrentWidget(self.enumeditor)
+			
+			elif fd.type == FD.BOOL:
+				self.booleaneditor.set_treewidget(widgetitem)
+				self.stack.setCurrentWidget(self.booleaneditor)
 			
 			else:
 				widgetitem.set_column_data()

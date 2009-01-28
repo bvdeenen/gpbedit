@@ -21,8 +21,6 @@ class FieldTreeItem(QTreeWidgetItem):
 	def __init__(self, field_desc, parent=None):
 		QTreeWidgetItem.__init__(self,parent)
 		self.field_desc = field_desc
-			
-			
 		self.set_column_data()
 
 	def set_column_data(self):
@@ -30,8 +28,6 @@ class FieldTreeItem(QTreeWidgetItem):
 		container = self.parent().gpbitem
 		fd=self.field_desc
 		t = fd.type
-
-			
 
 		if t == FD.STRING:
 			default_value=fd.default_value.decode('utf-8')
@@ -62,7 +58,6 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.gpbitem = gpbitem
 		self.createFieldCategories()
 
-
 		if not field_desc:  # for the top level
 			self.setText(0,gpbitem.DESCRIPTOR.name)
 		else: 
@@ -76,7 +71,7 @@ class MessageTreeItem(QTreeWidgetItem):
 				if field_desc.label == FD.REPEATED: 
 					for fi in object:
 						MessageTreeItem(field_desc, fi, self)
-				else: #if field_desc.label == FD.OPTIONAL:
+				else: # required or optional
 					MessageTreeItem(field_desc, object, self)
 			else: # its a non-message field
 				if field_desc.label == FD.REPEATED: 
@@ -113,11 +108,12 @@ class MessageTreeItem(QTreeWidgetItem):
 
 	def add_gpb_child(self, fd):
 		if fd.type == FD.MESSAGE:
-			self.createNestedMessage(fd.name)
+			child = self.createNestedMessage(fd.name)
 		else:	
-			FieldTreeItem(fd, self)
+			child = FieldTreeItem(fd, self)
+		self.treeWidget().setCurrentItem(child)
+		self.treeWidget().emit( SIGNAL("itemClicked(QTreeWidgetItem*, int)"), child,0)
 		
-
 	def createNestedMessage(self, fieldname):
 		fd= self.gpbitem.DESCRIPTOR.fields_by_name[fieldname]
 
@@ -125,12 +121,13 @@ class MessageTreeItem(QTreeWidgetItem):
 			if fd.label==FD.REPEATED : # repeated
 				o = getattr(self.gpbitem, fieldname)
 				gpbmessage = o.add()
-				MessageTreeItem(fd, gpbmessage, self)
+				child = MessageTreeItem(fd, gpbmessage, self)
 			else: # optional or required
 				o = getattr(self.gpbitem, fieldname)
-				MessageTreeItem(fd, o, self)
+				child = MessageTreeItem(fd, o, self)
 				
 		self.treeWidget().emit_gpbupdate()		
+		return child
 	
 
 				
@@ -166,8 +163,7 @@ class TreeWidget(QTreeWidget):
 		self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self.topLevelItem(0))
 
 	def save_gpb(self):
-		filename = QFileDialog.getSaveFileName(self,
-			"save gpb file", self.filename)
+		filename = QFileDialog.getSaveFileName(self, "save gpb file", self.filename)
 		if not filename : return
 		self.filename=filename
 		f=open(filename,"wb")
@@ -175,8 +171,7 @@ class TreeWidget(QTreeWidget):
 		f.close()
 
 	def open_gpb(self):
-		filename = QFileDialog.getOpenFileName(self,
-			"open gpb file", self.filename)
+		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename)
 		if not filename: return
 		self.filename=filename
 		f=open(filename,"rb")
@@ -220,6 +215,8 @@ if __name__ == "__main__":
 	rightvbox.addStretch()
 
 	debugwidget = DebugWidget(mainwindow)
+	debugwidget.setMinimumSize(200,400)
+	debugwidget.setMaximumWidth(300)
 
 	rightvbox.addWidget(debugwidget)
 
@@ -229,7 +226,7 @@ if __name__ == "__main__":
 	openbutton=QPushButton("&open gpb file", mainwindow)
 	rightvbox.addWidget(openbutton)
 
-	debugwidget.setMaximumWidth(300)
+
 
 	QObject.connect( treewidget, SIGNAL("gpbobject_updated(PyQt_PyObject)"),
 		debugwidget.slot_gpbobject_updated)
