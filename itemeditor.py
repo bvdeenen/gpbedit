@@ -24,13 +24,9 @@ class ItemEditor(QWidget):
 		vbox.addWidget(self.stack)
 		vbox.addStretch()
 
-		self.okbutton=QPushButton(self)
-		self.okbutton.setText("save")
 
-		vbox.addWidget(self.okbutton)
-		QObject.connect(self.okbutton,
-			SIGNAL('clicked()'),
-			self.okbuttonclicked)
+		self.blankeditor = QLabel(self)
+		self.stack.addWidget(self.blankeditor)
 
 		self.enumeditor=EnumEditor(self.stack)
 		self.stack.addWidget(self.enumeditor)
@@ -42,8 +38,8 @@ class ItemEditor(QWidget):
 		self.stack.addWidget(self.messageeditor)
 
 
-	def okbuttonclicked(self):
-		print "klik"
+	def no_edit(self):
+		self.stack.setCurrentWidget(self.blankeditor)
 
 	def make_connections(self, treewidget):
 		QObject.connect(treewidget, 

@@ -62,7 +62,6 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.gpbitem = gpbitem
 		self.createFieldCategories()
 
-		self.createRequiredFields()
 
 		if not field_desc:  # for the top level
 			self.setText(0,gpbitem.DESCRIPTOR.name)
@@ -70,16 +69,48 @@ class MessageTreeItem(QTreeWidgetItem):
 			labels=[field_desc.name, "", gpbitem.DESCRIPTOR.name ,FD.label_map[field_desc.label].lower()]
 			for i,l in enumerate(labels): self.setText(i,str(l))
 
-		for field_desc, object in gpbitem.ListFields():
+		ct=self.createRequiredFieldItems()
+
+		for field_desc, object in self.gpbitem.ListFields():
 			if field_desc.type== FD.MESSAGE:
 				if field_desc.label == FD.REPEATED: 
 					for fi in object:
 						MessageTreeItem(field_desc, fi, self)
-				else: # single
+				else: #if field_desc.label == FD.OPTIONAL:
 					MessageTreeItem(field_desc, object, self)
-			else:
-				FieldTreeItem(field_desc, self)
+			else: # its a non-message field
+				if field_desc.label == FD.REPEATED: 
+					for fi in object:
+						FieldTreeItem(field_desc, self)
+				else: # optional or required
+					FieldTreeItem(field_desc, self)
+		self.createRequiredMessageItems()			
+
 	
+	def createRequiredFieldItems(self):
+		i=0
+		for fieldname, fd in self.required_fields.items():
+			if self.gpbitem.HasField(fd.name): continue # it's already defined
+			if fd.type == FD.MESSAGE :  continue # only fields
+
+			# create a field when it is required and not yet existing
+			# the FieldTreeItem is created from the MessageTreeItem constructor
+			i+=1
+			if fd.type == FD.STRING:
+				setattr(self.gpbitem, fd.name, fd.default_value.encode('utf-8'))
+			else:	
+				setattr(self.gpbitem, fd.name, fd.default_value)
+		return i			
+
+	def createRequiredMessageItems(self):
+		i=0
+		for fieldname, fd in self.required_fields.items():
+			if self.gpbitem.HasField(fd.name): continue # it's already defined
+			if fd.type != FD.MESSAGE : continue # only message items
+			self.createNestedMessage(fieldname)
+			i+=1
+		return i			
+
 	def add_gpb_child(self, fd):
 		if fd.type == FD.MESSAGE:
 			self.createNestedMessage(fd.name)
@@ -101,19 +132,6 @@ class MessageTreeItem(QTreeWidgetItem):
 				
 		self.treeWidget().emit_gpbupdate()		
 	
-	def createRequiredFields(self):
-		for fieldname, fd in self.required_fields.items():
-			if fd.label != FD.REQUIRED : continue 
-			if self.gpbitem.HasField(fd.name): continue # it's already defined
-			if fd.type == FD.MESSAGE : 
-				self.createNestedMessage(fieldname)
-			else: # non-message type
-				# create a field when it is required and not yet existing
-				# the FieldTreeItem is created from the MessageTreeItem constructor
-				if fd.type == FD.STRING:
-					setattr(self.gpbitem, fd.name, fd.default_value.encode('utf-8'))
-				else:	
-					setattr(self.gpbitem, fd.name, fd.default_value)
 
 				
 
@@ -165,10 +183,12 @@ class TreeWidget(QTreeWidget):
 		gpb=example_pb2.ILNMessage()
 		gpb.ParseFromString( f.read())
 		f.close()
-		print google.protobuf.text_format.MessageToString(gpb)
+		global editwidget
+		editwidget.no_edit()
 
 		self.invisibleRootItem().removeChild( self.topLevelItem(0))
 		self.addTopLevelItem(MessageTreeItem(None, gpb))
+		self.emit_gpbupdate()
 
 
 
@@ -191,6 +211,7 @@ if __name__ == "__main__":
 
 	layout.addWidget(treewidget, 1)
 
+	global editwidget
 	editwidget = ItemEditor(mainwindow)
 
 	rightvbox=QVBoxLayout()
