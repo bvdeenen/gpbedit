@@ -21,6 +21,8 @@ class FieldTreeItem(QTreeWidgetItem):
 	def __init__(self, field_desc, parent=None):
 		QTreeWidgetItem.__init__(self,parent)
 		self.field_desc = field_desc
+			
+			
 		self.set_column_data()
 
 	def set_column_data(self):
@@ -28,6 +30,8 @@ class FieldTreeItem(QTreeWidgetItem):
 		container = self.parent().gpbitem
 		fd=self.field_desc
 		t = fd.type
+
+			
 
 		if t == FD.STRING:
 			default_value=fd.default_value.decode('utf-8')
@@ -43,8 +47,8 @@ class FieldTreeItem(QTreeWidgetItem):
 
 		self.setText(0, fd.name)
 		self.setText(1, str(t))
-		self.setText(2, FD.type_map[t])
-		self.setText(3, FD.label_map[fd.label])
+		self.setText(2, FD.type_map[t].lower())
+		self.setText(3, FD.label_map[fd.label].lower())
 		self.setText(4,default_value)
 		self.setText(5, value)
 
@@ -63,7 +67,7 @@ class MessageTreeItem(QTreeWidgetItem):
 		if not field_desc:  # for the top level
 			self.setText(0,gpbitem.DESCRIPTOR.name)
 		else: 
-			labels=[field_desc.name, "", gpbitem.DESCRIPTOR.name ,FD.label_map[field_desc.label]]
+			labels=[field_desc.name, "", gpbitem.DESCRIPTOR.name ,FD.label_map[field_desc.label].lower()]
 			for i,l in enumerate(labels): self.setText(i,str(l))
 
 		for field_desc, object in gpbitem.ListFields():
@@ -104,7 +108,13 @@ class MessageTreeItem(QTreeWidgetItem):
 			if fd.type == FD.MESSAGE : 
 				self.createNestedMessage(fieldname)
 			else: # non-message type
-				FieldTreeItem(fd, self)
+				# create a field when it is required and not yet existing
+				# the FieldTreeItem is created from the MessageTreeItem constructor
+				if fd.type == FD.STRING:
+					setattr(self.gpbitem, fd.name, fd.default_value.encode('utf-8'))
+				else:	
+					setattr(self.gpbitem, fd.name, fd.default_value)
+
 				
 
 
@@ -131,10 +141,35 @@ class TreeWidget(QTreeWidget):
 	"""
 	def __init__(self, parent=None):
 		QTreeWidget.__init__(self, parent)
+		self.filename = ""
 	def emit_gpbupdate(self):
 		""" our gpb object(s) have changed
 		"""
 		self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self.topLevelItem(0))
+
+	def save_gpb(self):
+		filename = QFileDialog.getSaveFileName(self,
+			"save gpb file", self.filename)
+		if not filename : return
+		self.filename=filename
+		f=open(filename,"wb")
+		f.write(self.topLevelItem(0).gpbitem.SerializeToString())
+		f.close()
+
+	def open_gpb(self):
+		filename = QFileDialog.getOpenFileName(self,
+			"open gpb file", self.filename)
+		if not filename: return
+		self.filename=filename
+		f=open(filename,"rb")
+		gpb=example_pb2.ILNMessage()
+		gpb.ParseFromString( f.read())
+		f.close()
+		print google.protobuf.text_format.MessageToString(gpb)
+
+		self.invisibleRootItem().removeChild( self.topLevelItem(0))
+		self.addTopLevelItem(MessageTreeItem(None, gpb))
+
 
 
 if __name__ == "__main__":
@@ -164,12 +199,22 @@ if __name__ == "__main__":
 	rightvbox.addStretch()
 
 	debugwidget = DebugWidget(mainwindow)
+
 	rightvbox.addWidget(debugwidget)
+
+	savebutton=QPushButton("&save gpb file", mainwindow)
+	rightvbox.addWidget(savebutton)
+
+	openbutton=QPushButton("&open gpb file", mainwindow)
+	rightvbox.addWidget(openbutton)
 
 	debugwidget.setMaximumWidth(300)
 
 	QObject.connect( treewidget, SIGNAL("gpbobject_updated(PyQt_PyObject)"),
 		debugwidget.slot_gpbobject_updated)
+
+	QObject.connect(savebutton, SIGNAL("clicked()"), treewidget.save_gpb)	
+	QObject.connect(openbutton, SIGNAL("clicked()"), treewidget.open_gpb)	
 
 	editwidget.make_connections(treewidget)
 

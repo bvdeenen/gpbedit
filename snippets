@@ -36,3 +36,9 @@
 			#child.show_enum(value.enum_type, child, l+4)
 
 
+				# create a field when it is required and not yet existing
+				if not self.gpbitem.HasField(fd.name):
+					if fd.type == FD.STRING:
+						setattr(self.gpbitem, fd.name, fd.default_value.encode('utf-8'))
+					else:	
+						setattr(self.gpbitem, fd.name, fd.default_value)
