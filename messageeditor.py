@@ -61,7 +61,6 @@ class MessageEditor(QWidget):
 
 	
 	def set_treewidget(self, widgetitem):
-		global type_map, label_map
 		self.widgetitem=widgetitem
 		self.container = widgetitem.gpbitem
 		if widgetitem.field_desc:

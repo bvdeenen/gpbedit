@@ -35,7 +35,6 @@ class EnumEditor(QWidget):
 		vbox.addStretch()
 	
 	def set_treewidget(self, widgetitem):
-		global type_map, label_map
 
 		fd = widgetitem.field_desc
 		container = widgetitem.parent().gpbitem

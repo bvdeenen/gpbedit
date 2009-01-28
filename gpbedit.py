@@ -14,23 +14,7 @@ from debugwidget import *
 from itemeditor import *
 
 import google
-
-global type_map, label_map
-type_map={}
-label_map={}
-
-# return a dictionary with value:name pairs for constants in a field object
-# like 
-# {1: 'TYPE_DOUBLE', 2: 'TYPE_FLOAT', 3: ...
-def create_value_map(object,prefix):
-	M={}
-	types = [(getattr(object,m),m) for m in dir(object) \
-		if not callable(getattr(object,m)) and m.startswith(prefix)]
-	for key,value in types:
-		M[key]=value
-	print M
-	return M	
-
+import FD
 
 # for tree items that represent a field of a message
 class FieldTreeItem(QTreeWidgetItem):
@@ -42,15 +26,14 @@ class FieldTreeItem(QTreeWidgetItem):
 
 
 	def set_column_data(self):
-		global type_map, label_map
 
-		typename=type_map[self.field_desc.type]
 		container = self.parent().gpbitem
+		t = self.field_desc.type
 
-		if typename == "TYPE_STRING" :
+		if t == FD.TYPE_STRING:
 			default_value=self.field_desc.default_value.decode('utf-8')
 			value = getattr(container, self.field_desc.name).decode('utf-8')
-		elif typename=="TYPE_ENUM":
+		elif t==FD.TYPE_ENUM:
 			value = getattr(container, self.field_desc.name)
 			value=self.field_desc.enum_type.values_by_number[value].name.decode('utf-8')
 			default_choice=self.field_desc.default_value
@@ -59,7 +42,9 @@ class FieldTreeItem(QTreeWidgetItem):
 			default_value=unicode(self.field_desc.default_value)
 			value = unicode(getattr(container, self.field_desc.name))
 
-		labels=[self.field_desc.name, str(self.field_desc.type),typename,label_map[self.field_desc.label], 
+		labels=[self.field_desc.name, str(t),
+			FD.type_map[t],
+			FD.label_map[self.field_desc.label], 
 			default_value, value]
 		for i,l in enumerate(labels): 
 			self.setText(i,l)
@@ -76,18 +61,17 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.createFieldCategories()
 
 		self.createRequiredFields()
-		global type_map, label_map
 
 		if not field_desc:  # for the top level
 			self.setText(0,gpbitem.DESCRIPTOR.name)
 		else: 
-			labels=[field_desc.name, "", gpbitem.DESCRIPTOR.name ,label_map[field_desc.label]]
+			labels=[field_desc.name, "", gpbitem.DESCRIPTOR.name ,FD.label_map[field_desc.label]]
 			for i,l in enumerate(labels): self.setText(i,str(l))
 
 		for field_desc, object in gpbitem.ListFields():
 
-			if field_desc.type==11: #message
-				if field_desc.label == 3: #repeated
+			if field_desc.type== FD.TYPE_MESSAGE:
+				if field_desc.label == FD.LABEL_REPEATED: 
 					for fi in object:
 						MessageTreeItem(field_desc, fi, self)
 				else: # single
@@ -96,7 +80,7 @@ class MessageTreeItem(QTreeWidgetItem):
 				FieldTreeItem(field_desc, self)
 	
 	def add_gpb_child(self, fd):
-		if fd.type == 11:
+		if fd.type == FD.TYPE_MESSAGE:
 			self.createNestedMessage(fd.name)
 		else:	
 			FieldTreeItem(fd, self)
@@ -105,8 +89,8 @@ class MessageTreeItem(QTreeWidgetItem):
 	def createNestedMessage(self, fieldname):
 		fd= self.gpbitem.DESCRIPTOR.fields_by_name[fieldname]
 
-		if fd.type==11 : # message
-			if fd.label==3 : # repeated
+		if fd.type==FD.TYPE_MESSAGE : # message
+			if fd.label==FD.LABEL_REPEATED : # repeated
 				o = getattr(self.gpbitem, fieldname)
 				gpbmessage = o.add()
 				MessageTreeItem(fd, gpbmessage, self)
@@ -118,8 +102,8 @@ class MessageTreeItem(QTreeWidgetItem):
 	
 	def createRequiredFields(self):
 		for fieldname, fd in self.required_fields.items():
-			if fd.label != 2 : continue # not required
-			if fd.type == 11 : #message
+			if fd.label != FD.LABEL_REQUIRED : continue # not required
+			if fd.type == FD.TYPE_MESSAGE : #message
 				self.createNestedMessage(fieldname)
 			else: # non-message type
 				FieldTreeItem(fd, self)
@@ -131,23 +115,17 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.optional_fields={}
 		self.repeated_fields={}
 		for fieldname, fd in self.gpbitem.DESCRIPTOR.fields_by_name.items():
-			if fd.label == 1 : #optional
+			if fd.label == FD.LABEL_OPTIONAL : #optional
 				self.optional_fields[fieldname] = fd
-			elif fd.label ==2 : # required	
+			elif fd.label ==FD.LABEL_REQUIRED : # required	
 				self.required_fields[fieldname] = fd
-			elif fd.label==3: #repeated	
+			elif fd.label==FD.LABEL_REPEATED: #repeated	
 				self.repeated_fields[fieldname] = fd
 			else:
 				print "unknown label"
 				sys.exit(1)
 
 		
-def setup_maps(gpbitem):
-	name,field_desc = gpbitem.DESCRIPTOR.fields_by_name.items()[0]
-	global type_map, label_map
-	if not type_map: type_map=create_value_map(field_desc,"TYPE_")
-	if not label_map: label_map=create_value_map(field_desc,"LABEL_")
-
 class TreeWidget(QTreeWidget):
 	def __init__(self, parent=None):
 		QTreeWidget.__init__(self, parent)
@@ -156,6 +134,7 @@ class TreeWidget(QTreeWidget):
 
 
 if __name__ == "__main__":
+	FD.init()
 	app = QApplication(sys.argv)
 	mainwindow=QWidget()
 	layout = QHBoxLayout(mainwindow)
@@ -167,18 +146,6 @@ if __name__ == "__main__":
 	treewidget.setHeaderLabels( [ "Name" ,"Type" ,"Kind" ,"Label" ,"Default", "Value"])
 
 	message=ILNMessage()
-	setup_maps(message)
-
-	# obj=message.objects.add()
-	# obj.type=123
-	# obj.id="bart"
-
-	# rss=message.rsss.add()
-	# rss.refreshtime=1.234
-
-	#obj.autohide=5
-	#obj.anchor.anchor_id="the anchor id"
-	#obj.anchor.anchor=2
 
 	gpb_top = MessageTreeItem( None, message)
 	

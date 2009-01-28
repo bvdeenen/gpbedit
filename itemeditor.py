@@ -15,6 +15,8 @@ from valueeditor import *
 from messageeditor import *
 from enumeditor import *
 
+import FD
+
 class ItemEditor(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)
@@ -53,7 +55,6 @@ class ItemEditor(QWidget):
 
 	
 	def slot_treeitem_click(self, widgetitem, column):
-		global type_map, label_map
 		fd = widgetitem.field_desc
 
 
@@ -61,7 +62,7 @@ class ItemEditor(QWidget):
 			# edit a simple type
 			container = widgetitem.parent().gpbitem
 			value=getattr(container,fd.name)
-			if fd.type == 14:
+			if fd.type == FD.TYPE_ENUM:
 				self.enumeditor.set_treewidget(widgetitem)
 				self.stack.setCurrentIndex(0)
 			
@@ -76,10 +77,6 @@ class ItemEditor(QWidget):
 			self.messageeditor.set_treewidget(widgetitem)
 			self.stack.setCurrentIndex(2)
 
-		#
-		#elif not itemdata.DESCRIPTOR.message_type:
-		#	self.valueeditor.set_treewidget(widgetitem)
-		#	self.stack.setCurrentIndex(1)
 			
 	
 

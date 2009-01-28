@@ -9,6 +9,8 @@ from effects_pb2 import *
 from rows_pb2 import *
 from google.protobuf import text_format
 
+import FD
+
 import __main__ 
 
 class ValueEditor(QWidget):
@@ -41,11 +43,11 @@ class ValueEditor(QWidget):
 		self.fd = fd
 		self.container= container
 
-		t=__main__.type_map[self.fd.type]
+		t=FD.type_map[self.fd.type]
+		self.typelabel.setText(t)
 
 		self.namelabel.setText(fd.name)
-		self.typelabel.setText(t)
-		if t=="TYPE_STRING" :
+		if self.fd.type==FD.TYPE_STRING:
 			self.editbox.setText( getattr(container, fd.name).decode('utf-8'))
 		else:	
 			self.editbox.setText( str(getattr(container, fd.name)))
@@ -53,15 +55,15 @@ class ValueEditor(QWidget):
 
 	def editFinished(self) :
 		v = unicode(self.editbox.text())
-		t=__main__.type_map[self.fd.type]
 
-		if  t == "TYPE_STRING" :
+		if  self.fd.type == FD.TYPE_STRING :
 			setattr(self.container, self.fd.name, v.encode('utf-8'))
 
-		elif t.find("INT") >= 0 :
-			setattr(self.container, self.fd.name, int(v))
-		else:	
+		elif self.fd.type in [FD.TYPE_DOUBLE, FD.TYPE_FLOAT]:
 			setattr(self.container, self.fd.name, float(v))
+		else:
+			setattr(self.container, self.fd.name, int(v))
+
 		self.widgetitem.set_column_data()
 		self.widgetitem.treeWidget().emit_gpbupdate()
 
