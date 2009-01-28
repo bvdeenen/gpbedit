@@ -15,7 +15,7 @@ from itemeditor import *
 
 import google
 
-global type_map, label_map, gpb_top
+global type_map, label_map
 type_map={}
 label_map={}
 
@@ -45,17 +45,23 @@ class FieldTreeItem(QTreeWidgetItem):
 		global type_map, label_map
 
 		typename=type_map[self.field_desc.type]
-		default_value=self.field_desc.default_value
 		container = self.parent().gpbitem
-		value = getattr(container, self.field_desc.name)
 
-		if self.field_desc.enum_type:
-			default_value = self.field_desc.enum_type.values_by_number[default_value].name
-			value=self.field_desc.enum_type.values_by_number[value].name
+		if typename == "TYPE_STRING" :
+			default_value=self.field_desc.default_value.decode('utf-8')
+			value = getattr(container, self.field_desc.name).decode('utf-8')
+		elif typename=="TYPE_ENUM":
+			default_choice=self.field_desc.default_value
+			default_value = self.field_desc.enum_type.values_by_number[default_choice].name
+			value=self.field_desc.enum_type.values_by_number[value].name.decode('utf-8')
+		else:	
+			default_value=unicode(self.field_desc.default_value)
+			value = unicode(getattr(container, self.field_desc.name))
 
-		labels=[self.field_desc.name, self.field_desc.type,typename,label_map[self.field_desc.label], 
+		labels=[self.field_desc.name, str(self.field_desc.type),typename,label_map[self.field_desc.label], 
 			default_value, value]
-		for i,l in enumerate(labels): self.setText(i,str(l))
+		for i,l in enumerate(labels): 
+			self.setText(i,l)
 
 class MessageTreeItem(QTreeWidgetItem):
 
@@ -97,9 +103,7 @@ class MessageTreeItem(QTreeWidgetItem):
 				gpbmessage = o.add()
 				MessageTreeItem(fd, gpbmessage, self)
 			else: # optional or required
-				#print "***", self.gpbitem.DESCRIPTOR.name, "***"
 				o = getattr(self.gpbitem, fieldname)
-				#print fd.type, fd.label, fd.name, fieldname, "'", type(o),"'"
 				MessageTreeItem(fd, o, self)
 				
 		self.treeWidget().emit_gpbupdate()		
@@ -107,9 +111,7 @@ class MessageTreeItem(QTreeWidgetItem):
 	def createRequiredFields(self):
 		for fieldname, fd in self.required_fields.items():
 			if fd.label != 2 : continue # not required
-			print fieldname, self.gpbitem.DESCRIPTOR.name
 			if fd.type == 11 : #message
-				#print "hier", fd.name
 				self.createNestedMessage(fieldname)
 			else: # non-message type
 				o=getattr(self.gpbitem, fieldname)
@@ -119,7 +121,6 @@ class MessageTreeItem(QTreeWidgetItem):
 
 
 	def createFieldCategories(self):
-		#print "createFieldCategories", self.gpbitem
 		self.required_fields={}
 		self.optional_fields={}
 		self.repeated_fields={}
@@ -189,6 +190,7 @@ if __name__ == "__main__":
 	debugwidget = DebugWidget(mainwindow)
 	rightvbox.addWidget(debugwidget)
 
+	debugwidget.setMaximumWidth(300)
 
 	QObject.connect( treewidget, SIGNAL("gpbobject_updated(PyQt_PyObject)"),
 		debugwidget.slot_gpbobject_updated)
@@ -205,6 +207,7 @@ if __name__ == "__main__":
 	message.rsss[0].text.font="Arial"
 	treewidget.emit_gpbupdate()
 
-	#print text_format.MessageToString(message)
+	treewidget.expandItem(gpb_top)
+
 	mainwindow.setMinimumSize(QSize(1000,800))
 	sys.exit(app.exec_())

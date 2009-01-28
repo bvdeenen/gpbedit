@@ -14,8 +14,8 @@ from rows_pb2 import *
 class DebugWidget(QLabel):
 	def __init__(self, parent=None):
 		QLabel.__init__(self, parent)
-	# slot called when TreeWidget has updated the gpb_top object
 
+	# slot called when TreeWidget has updated the gpb_top object
 	def slot_gpbobject_updated(self, gpb_top):	
 		self.setText(text_format.MessageToString(gpb_top.gpbitem))
 
