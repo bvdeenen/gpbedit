@@ -30,10 +30,10 @@ class FieldTreeItem(QTreeWidgetItem):
 		container = self.parent().gpbitem
 		t = self.field_desc.type
 
-		if t == FD.TYPE_STRING:
+		if t == FD.STRING:
 			default_value=self.field_desc.default_value.decode('utf-8')
 			value = getattr(container, self.field_desc.name).decode('utf-8')
-		elif t==FD.TYPE_ENUM:
+		elif t==FD.ENUM:
 			value = getattr(container, self.field_desc.name)
 			value=self.field_desc.enum_type.values_by_number[value].name.decode('utf-8')
 			default_choice=self.field_desc.default_value
@@ -70,8 +70,8 @@ class MessageTreeItem(QTreeWidgetItem):
 
 		for field_desc, object in gpbitem.ListFields():
 
-			if field_desc.type== FD.TYPE_MESSAGE:
-				if field_desc.label == FD.LABEL_REPEATED: 
+			if field_desc.type== FD.MESSAGE:
+				if field_desc.label == FD.REPEATED: 
 					for fi in object:
 						MessageTreeItem(field_desc, fi, self)
 				else: # single
@@ -80,7 +80,7 @@ class MessageTreeItem(QTreeWidgetItem):
 				FieldTreeItem(field_desc, self)
 	
 	def add_gpb_child(self, fd):
-		if fd.type == FD.TYPE_MESSAGE:
+		if fd.type == FD.MESSAGE:
 			self.createNestedMessage(fd.name)
 		else:	
 			FieldTreeItem(fd, self)
@@ -89,8 +89,8 @@ class MessageTreeItem(QTreeWidgetItem):
 	def createNestedMessage(self, fieldname):
 		fd= self.gpbitem.DESCRIPTOR.fields_by_name[fieldname]
 
-		if fd.type==FD.TYPE_MESSAGE : # message
-			if fd.label==FD.LABEL_REPEATED : # repeated
+		if fd.type==FD.MESSAGE : # message
+			if fd.label==FD.REPEATED : # repeated
 				o = getattr(self.gpbitem, fieldname)
 				gpbmessage = o.add()
 				MessageTreeItem(fd, gpbmessage, self)
@@ -102,8 +102,8 @@ class MessageTreeItem(QTreeWidgetItem):
 	
 	def createRequiredFields(self):
 		for fieldname, fd in self.required_fields.items():
-			if fd.label != FD.LABEL_REQUIRED : continue # not required
-			if fd.type == FD.TYPE_MESSAGE : #message
+			if fd.label != FD.REQUIRED : continue # not required
+			if fd.type == FD.MESSAGE : #message
 				self.createNestedMessage(fieldname)
 			else: # non-message type
 				FieldTreeItem(fd, self)
@@ -115,11 +115,11 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.optional_fields={}
 		self.repeated_fields={}
 		for fieldname, fd in self.gpbitem.DESCRIPTOR.fields_by_name.items():
-			if fd.label == FD.LABEL_OPTIONAL : #optional
+			if fd.label == FD.OPTIONAL : #optional
 				self.optional_fields[fieldname] = fd
-			elif fd.label ==FD.LABEL_REQUIRED : # required	
+			elif fd.label ==FD.REQUIRED : # required	
 				self.required_fields[fieldname] = fd
-			elif fd.label==FD.LABEL_REPEATED: #repeated	
+			elif fd.label==FD.REPEATED: #repeated	
 				self.repeated_fields[fieldname] = fd
 			else:
 				print "unknown label"

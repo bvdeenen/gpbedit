@@ -7,32 +7,32 @@ global type_map, label_map
 
 # return a dictionary with value:name pairs for constants in a field object
 # like 
-#  1  : 'TYPE_DOUBLE',
-#  2  : 'TYPE_FLOAT',
-#  3  : 'TYPE_INT64',
-#  4  : 'TYPE_UINT64',
-#  5  : 'TYPE_INT32',
-#  6  : 'TYPE_FIXED64',
-#  7  : 'TYPE_FIXED32',
-#  8  : 'TYPE_BOOL',
-#  9  : 'TYPE_STRING',
-#  10 : 'TYPE_GROUP',
-#  11 : 'TYPE_MESSAGE',
-#  12 : 'TYPE_BYTES',
-#  13 : 'TYPE_UINT32',
-#  14 : 'TYPE_ENUM',
-#  15 : 'TYPE_SFIXED32',
-#  16 : 'TYPE_SFIXED64',
-#  17 : 'TYPE_SINT32',
-#  18 : 'TYPE_SINT64'
+#  1  : 'DOUBLE',
+#  2  : 'FLOAT',
+#  3  : 'INT64',
+#  4  : 'UINT64',
+#  5  : 'INT32',
+#  6  : 'FIXED64',
+#  7  : 'FIXED32',
+#  8  : 'BOOL',
+#  9  : 'STRING',
+#  10 : 'GROUP',
+#  11 : 'MESSAGE',
+#  12 : 'BYTES',
+#  13 : 'UINT32',
+#  14 : 'ENUM',
+#  15 : 'SFIXED32',
+#  16 : 'SFIXED64',
+#  17 : 'SINT32',
+#  18 : 'SINT64'
 #  
-#  1  : 'LABEL_OPTIONAL',
-#  2  : 'LABEL_REQUIRED',
-#  3  : 'LABEL_REPEATED'
+#  1  : 'OPTIONAL',
+#  2  : 'REQUIRED',
+#  3  : 'REPEATED'
 
 def create_value_map(object,prefix):
 	M={}
-	types = [(getattr(object,m),m) for m in dir(object) \
+	types = [(getattr(object,m),m[len(prefix):]) for m in dir(object) \
 		if not callable(getattr(object,m)) and m.startswith(prefix)]
 	for key,value in types:
 		M[key]=value

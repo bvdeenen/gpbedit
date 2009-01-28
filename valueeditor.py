@@ -47,7 +47,7 @@ class ValueEditor(QWidget):
 		self.typelabel.setText(t)
 
 		self.namelabel.setText(fd.name)
-		if self.fd.type==FD.TYPE_STRING:
+		if self.fd.type==FD.STRING:
 			self.editbox.setText( getattr(container, fd.name).decode('utf-8'))
 		else:	
 			self.editbox.setText( str(getattr(container, fd.name)))
@@ -56,10 +56,10 @@ class ValueEditor(QWidget):
 	def editFinished(self) :
 		v = unicode(self.editbox.text())
 
-		if  self.fd.type == FD.TYPE_STRING :
+		if  self.fd.type == FD.STRING :
 			setattr(self.container, self.fd.name, v.encode('utf-8'))
 
-		elif self.fd.type in [FD.TYPE_DOUBLE, FD.TYPE_FLOAT]:
+		elif self.fd.type in [FD.DOUBLE, FD.FLOAT]:
 			setattr(self.container, self.fd.name, float(v))
 		else:
 			setattr(self.container, self.fd.name, int(v))

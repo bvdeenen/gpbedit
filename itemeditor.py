@@ -62,7 +62,7 @@ class ItemEditor(QWidget):
 			# edit a simple type
 			container = widgetitem.parent().gpbitem
 			value=getattr(container,fd.name)
-			if fd.type == FD.TYPE_ENUM:
+			if fd.type == FD.ENUM:
 				self.enumeditor.set_treewidget(widgetitem)
 				self.stack.setCurrentIndex(0)
 			
