@@ -8,6 +8,7 @@ def read_settings_file(filename=".gpbedit"):
 	#try:
 	f=open(filename,"r")
 	#except IOErr 
+	global loadfile
 	loadfile=""
 	for l in f.readlines():
 		l=l.strip()
