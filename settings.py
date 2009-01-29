@@ -5,10 +5,10 @@ import sys
 import google
 
 def read_settings_file(filename=".gpbedit"):
+	#try:
 	f=open(filename,"r")
-	global protofiles, rootmessage, gpb_root, loadfile
+	#except IOErr 
 	loadfile=""
-	protofiles=[]
 	for l in f.readlines():
 		l=l.strip()
 		if not l or l.startswith("#") : continue
@@ -18,25 +18,34 @@ def read_settings_file(filename=".gpbedit"):
 		value=value.strip()
 
 		if name == "rootmessage" :
-			rootmessage = value
+			set_root_message(value)
 		elif name=="protofile":
-			if value.endswith(".proto"): value = value[:-len(".proto")]
-			protofiles.append(value+"_pb2")
+			import_proto(value)
 		elif name=="loadfile":
 			loadfile= value
 	f.close()
 
-	g=globals()
-	for protofile in protofiles :
-		print "import "+ protofile
-		g[protofile] = __import__(protofile)
 	gpb_root = empty_root_message()	
 	
-def empty_root_message():
+def import_proto(protofile):
+	global gpb_module, rootmessage, gpb_root, loadfile
+	if protofile.endswith(".proto"): protofile = protofile[:-len(".proto")]
+	gpb_module = protofile+"_pb2"
+
+	gpb_module = __import__(gpb_module)
+	all_module_members = map(lambda n: (n,type( getattr(gpb_module,n))), dir(gpb_module))
+	messages = [(name) for name,t  in all_module_members \
+		if t == google.protobuf.reflection.GeneratedProtocolMessageType]
+	print messages
+
+def set_root_message(message):
 	global rootmessage
-	return eval(rootmessage+"()")
+	rootmessage = message
+
+def empty_root_message():
+	global rootmessage, gpb_module
+	return eval("gpb_module."+rootmessage+"()")
 
 
 if __name__ == '__main__':
 	read_settings_file()
-	print dir()

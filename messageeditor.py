@@ -43,6 +43,15 @@ class MessageEditor(QWidget):
 		QObject.connect(self.optionalpopup, SIGNAL("triggered(QAction *)"),
 			self.add_gpb_child)
 
+		gridrow+=1
+		grid.addWidget(QLabel("Remove object"), gridrow, 0)
+		self.deletebutton = QPushButton(self)
+		self.deletebutton.setText("Delete")
+		grid.addWidget(self.deletebutton, gridrow, 1)
+
+		QObject.connect(self.deletebutton, SIGNAL("clicked()"),
+			self.remove_message)
+
 		vbox.addStretch()
 
 	def add_gpb_child(self, action):
@@ -53,6 +62,12 @@ class MessageEditor(QWidget):
 		fd = container.DESCRIPTOR.fields_by_name[field_name]
 		self.widgetitem.add_gpb_child(fd)
 	
+	def remove_message(self):
+		parent = self.widgetitem.parent()
+		parent.removeChild(self.widgetitem)
+		del self.widgetitem
+		self.emit( SIGNAL("closeMe()"))
+		
 	def set_treewidget(self, widgetitem):
 		self.widgetitem=widgetitem
 		container = self.widgetitem.gpbitem
@@ -71,6 +86,8 @@ class MessageEditor(QWidget):
 			
 		self.set_popup_menu(self.repeatedpopup, widgetitem.repeated_fields)
 		self.set_popup_menu(self.optionalpopup, self.unfilled_optional_fields)
+
+		self.deletebutton.setEnabled( self.widgetitem.parent()!=None )
 	
 	
 	def set_popup_menu(self, menu, dict) :

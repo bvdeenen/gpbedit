@@ -41,6 +41,9 @@ class ItemEditor(QWidget):
 		self.booleaneditor=BooleanEditor(self.stack)
 		self.stack.addWidget(self.booleaneditor)
 
+		QObject.connect( self.messageeditor, SIGNAL("closeMe()"),
+			self.no_edit)
+
 
 	def no_edit(self):
 		self.stack.setCurrentWidget(self.blankeditor)

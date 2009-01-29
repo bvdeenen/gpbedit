@@ -1,13 +1,11 @@
 # this is the message that is alone in the top level of the tree
-rootmessage : example_pb2.ILNMessage
+rootmessage : ILNMessage
 
 # these protofiles need to have generated *_pb2.py files (with protoc
 # --python_out = .) There is no path handling at all at the moment
 # and the proto files are not automatically compiled
 
 protofile   : example.proto
-protofile   : rows.proto
-protofile   : effects.proto
 
 loadfile    : test.gpb
 

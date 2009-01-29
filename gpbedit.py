@@ -183,6 +183,9 @@ class TreeWidget(QTreeWidget):
 		editwidget.no_edit()
 
 		self.invisibleRootItem().removeChild( self.topLevelItem(0))
+		c= self.topLevelItem(0)
+		del c
+
 		top=MessageTreeItem(None, gpb)
 		self.addTopLevelItem(top)
 		self.expandItem(top)
