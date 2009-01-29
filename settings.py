@@ -6,7 +6,8 @@ import google
 
 def read_settings_file(filename=".gpbedit"):
 	f=open(filename,"r")
-	global protofiles, rootmessage, gpb_root
+	global protofiles, rootmessage, gpb_root, loadfile
+	loadfile=""
 	protofiles=[]
 	for l in f.readlines():
 		l=l.strip()
@@ -21,6 +22,8 @@ def read_settings_file(filename=".gpbedit"):
 		elif name=="protofile":
 			if value.endswith(".proto"): value = value[:-len(".proto")]
 			protofiles.append(value+"_pb2")
+		elif name=="loadfile":
+			loadfile= value
 	f.close()
 
 	g=globals()

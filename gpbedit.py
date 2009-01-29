@@ -171,6 +171,9 @@ class TreeWidget(QTreeWidget):
 	def open_gpb(self):
 		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename)
 		if not filename: return
+		self.loadfile(filename)
+	
+	def loadfile(self,filename):
 		self.filename=filename
 		f=open(filename,"rb")
 		gpb=settings.empty_root_message()
@@ -180,7 +183,9 @@ class TreeWidget(QTreeWidget):
 		editwidget.no_edit()
 
 		self.invisibleRootItem().removeChild( self.topLevelItem(0))
-		self.addTopLevelItem(MessageTreeItem(None, gpb))
+		top=MessageTreeItem(None, gpb)
+		self.addTopLevelItem(top)
+		self.expandItem(top)
 		self.emit_gpbupdate()
 
 
@@ -240,6 +245,10 @@ if __name__ == "__main__":
 	mainwindow.setMinimumSize(QSize(1000,800))
 
 	mainwindow.show()
+
+	if settings.loadfile:
+		treewidget.loadfile(settings.loadfile)
+		
 	treewidget.emit_gpbupdate()
 
 

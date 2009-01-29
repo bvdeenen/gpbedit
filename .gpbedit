@@ -9,3 +9,5 @@ protofile   : example.proto
 protofile   : rows.proto
 protofile   : effects.proto
 
+loadfile    : test.gpb
+
