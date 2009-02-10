@@ -169,7 +169,7 @@ class TreeWidget(QTreeWidget):
 		f.close()
 
 	def open_gpb(self):
-		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename)
+		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename, "GPB files (*.gpb);;All files (*.*)")
 		if not filename: return
 		self.loadfile(filename)
 
