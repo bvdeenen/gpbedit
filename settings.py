@@ -4,6 +4,8 @@
 import sys
 import google
 
+global loadfile
+loadfile=None
 def read_settings_file(filename=".gpbedit"):
 	#try:
 	f=open(filename,"r")

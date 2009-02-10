@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
 	settings.read_settings_file()
 	
-	gpb_top = MessageTreeItem( None, settings.gpb_root)
+	gpb_top = MessageTreeItem( None, settings.empty_root_message())
 	treewidget.addTopLevelItem(gpb_top)
 
 	layout.addWidget(treewidget, 1)
