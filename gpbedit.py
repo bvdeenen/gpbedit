@@ -27,11 +27,11 @@ class FieldTreeItem(QTreeWidgetItem):
 		t = fd.type
 
 		if t == FD.STRING:
-			default_value=fd.default_value.decode('utf-8')
-			value = getattr(container, fd.name).decode('utf-8')
+			default_value=fd.default_value
+			value = getattr(container, fd.name)
 		elif t==FD.ENUM:
 			value = getattr(container, fd.name)
-			value=fd.enum_type.values_by_number[value].name.decode('utf-8')
+			value=fd.enum_type.values_by_number[value].name
 			default_choice=fd.default_value
 			default_value = fd.enum_type.values_by_number[default_choice].name
 		else:	
@@ -88,10 +88,7 @@ class MessageTreeItem(QTreeWidgetItem):
 			# create a field when it is required and not yet existing
 			# the FieldTreeItem is created from the MessageTreeItem constructor
 			i+=1
-			if fd.type == FD.STRING:
-				setattr(self.gpbitem, fd.name, fd.default_value.encode('utf-8'))
-			else:	
-				setattr(self.gpbitem, fd.name, fd.default_value)
+			setattr(self.gpbitem, fd.name, fd.default_value)
 		return i			
 
 	def createRequiredMessageItems(self):

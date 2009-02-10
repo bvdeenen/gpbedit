@@ -37,7 +37,7 @@ class ValueEditor(QWidget):
 
 		self.namelabel.setText(fd.name)
 		if fd.type==FD.STRING:
-			self.editbox.setText( getattr(container, fd.name).decode('utf-8'))
+			self.editbox.setText( getattr(container, fd.name))
 		else:	
 			self.editbox.setText( str(getattr(container, fd.name)))
 
@@ -56,7 +56,7 @@ class ValueEditor(QWidget):
 		container = self.widgetitem.parent().gpbitem
 
 		if  fd.type == FD.STRING :
-			setattr(container, fd.name, v.encode('utf-8'))
+			setattr(container, fd.name, v)
 		elif fd.type in [FD.DOUBLE, FD.FLOAT]:
 			setattr(container, fd.name, float(v))
 		else:
