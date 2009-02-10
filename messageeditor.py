@@ -65,6 +65,8 @@ class MessageEditor(QWidget):
 	def remove_message(self):
 		parent = self.widgetitem.parent()
 		parent.removeChild(self.widgetitem)
+		container = parent.gpbitem
+		container.ClearField(self.widgetitem.gpbitem)
 		del self.widgetitem
 		self.emit( SIGNAL("closeMe()"))
 		

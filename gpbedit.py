@@ -172,25 +172,41 @@ class TreeWidget(QTreeWidget):
 		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename)
 		if not filename: return
 		self.loadfile(filename)
-	
+
 	def loadfile(self,filename):
+		self.clear_gpb()
 		self.filename=filename
 		f=open(filename,"rb")
 		gpb=settings.empty_root_message()
 		gpb.ParseFromString( f.read())
 		f.close()
+		self.create_toplevel(gpb)
+		# top=MessageTreeItem(None, gpb)
+		# self.addTopLevelItem(top)
+		# self.expandItem(top)
+		# self.emit_gpbupdate()
+
+
+	def clear_gpb(self):
 		global editwidget
 		editwidget.no_edit()
-
-		self.invisibleRootItem().removeChild( self.topLevelItem(0))
 		c= self.topLevelItem(0)
 		del c
-
+		self.invisibleRootItem().removeChild( self.topLevelItem(0))
+	
+	def create_toplevel(self, gpb=None):
+		if not gpb:
+			gpb=settings.empty_root_message()
 		top=MessageTreeItem(None, gpb)
 		self.addTopLevelItem(top)
 		self.expandItem(top)
 		self.emit_gpbupdate()
+	
+	def start_with_empty_toplevel(self):
+		self.clear_gpb()
+		self.create_toplevel()
 
+	
 
 
 if __name__ == "__main__":
@@ -226,6 +242,9 @@ if __name__ == "__main__":
 
 	rightvbox.addWidget(debugwidget)
 
+	clearbutton=QPushButton("&clear whole tree", mainwindow)
+	rightvbox.addWidget(clearbutton)
+
 	savebutton=QPushButton("&save gpb file", mainwindow)
 	rightvbox.addWidget(savebutton)
 
@@ -239,6 +258,7 @@ if __name__ == "__main__":
 
 	QObject.connect(savebutton, SIGNAL("clicked()"), treewidget.save_gpb)	
 	QObject.connect(openbutton, SIGNAL("clicked()"), treewidget.open_gpb)	
+	QObject.connect(clearbutton, SIGNAL("clicked()"), treewidget.start_with_empty_toplevel)	
 
 	editwidget.make_connections(treewidget)
 
@@ -249,8 +269,7 @@ if __name__ == "__main__":
 
 	mainwindow.show()
 
-	if settings.loadfile:
-		treewidget.loadfile(settings.loadfile)
+	#if settings.loadfile: treewidget.loadfile(settings.loadfile)
 		
 	treewidget.emit_gpbupdate()
 
