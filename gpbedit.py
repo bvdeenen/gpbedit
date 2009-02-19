@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
 	mainwindow.show()
 
-	#if settings.loadfile: treewidget.loadfile(settings.loadfile)
+	if settings.loadfile: treewidget.loadfile(settings.loadfile)
 		
 	treewidget.emit_gpbupdate()
 

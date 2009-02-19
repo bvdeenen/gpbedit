@@ -1,8 +1,1 @@
-message PEffect {
-	required string id = 1;
-	required int32 type=2;
-	optional int32 table=3;
-	optional int32 table_row=4;
-
-}
-
+../jds-protocol/src/effects.proto

@@ -7,5 +7,5 @@ rootmessage : ILNMessage
 
 protofile   : example.proto
 
-loadfile    : test.gpb
+loadfile    : ../jds6-prototype1/jds.gpb
 
