@@ -111,7 +111,7 @@ class MessageTreeItem(QTreeWidgetItem):
 		else:	
 			child = FieldTreeItem(fd, self)
 		self.treeWidget().setCurrentItem(child)
-		self.treeWidget().emit( SIGNAL("itemClicked(QTreeWidgetItem*, int)"), child,0)
+		#self.treeWidget().emit( SIGNAL("itemClicked(QTreeWidgetItem*, int)"), child,0)
 		
 	def createNestedMessage(self, fieldname):
 		fd= self.gpbitem.DESCRIPTOR.fields_by_name[fieldname]
