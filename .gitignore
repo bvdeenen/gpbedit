@@ -1,3 +1,4 @@
+.gpbedit
 *.pyc
 html/
 *_pb2.py
