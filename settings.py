@@ -78,6 +78,7 @@ def read_settings_file():
 	compile_protofiles(protofiles)
 	import_proto()
 	gpb_root = empty_root_message()	
+	print "gpb_root=",gpb_root, type(gpb_root)
 	
 def compile_protofiles(protofiles):	
 	for p in protofiles.split():
@@ -99,9 +100,11 @@ def import_proto():
 	print messages
 
 def empty_root_message():
-	global gpb_module
+	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
-	return eval("gpb_module."+ message+"()")
+	v= eval("gpb_module."+ message+"()")
+	print "empty_root_message=",v,type(v)
+	return v
 
 
 if __name__ == '__main__':

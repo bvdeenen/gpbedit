@@ -52,6 +52,11 @@ class MessageTreeItem(QTreeWidgetItem):
 
 		self.setExpanded(True)
 		self.field_desc = field_desc
+		if not gpbitem: 
+			print "ERROR MessageTreeItem without gpbitem"
+			sys.exit(1)
+		else:
+			print "gpbitem='",gpbitem,"'", type(gpbitem)
 		self.gpbitem = gpbitem
 		self.createFieldCategories()
 
@@ -192,8 +197,10 @@ class TreeWidget(QTreeWidget):
 		self.invisibleRootItem().removeChild( self.topLevelItem(0))
 	
 	def create_toplevel(self, gpb=None):
+		print "create_toplevel, gpb=",gpb
 		if not gpb:
 			gpb=settings.empty_root_message()
+		print "gpb=",gpb	
 		top=MessageTreeItem(None, gpb)
 		self.addTopLevelItem(top)
 		self.expandItem(top)
