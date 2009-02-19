@@ -57,7 +57,9 @@ class MessageEditor(QWidget):
 	def add_gpb_child(self, action):
 		field_name = str(action.text())
 
+		print "self.widgetitem=",self.widgetitem
 		container = self.widgetitem.gpbitem
+		print field_name, "container=",container
 		
 		fd = container.DESCRIPTOR.fields_by_name[field_name]
 		self.widgetitem.add_gpb_child(fd)
