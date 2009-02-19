@@ -9,6 +9,7 @@ from PyQt4.QtCore import *
 global loadfile, settings_file_name
 loadfile=None
 settings_file_name=  ".gpbedit"
+sys.path.append('.')
 
 class ConfigDialog(QDialog):
 	def __init__(self, messages, parent=None):
