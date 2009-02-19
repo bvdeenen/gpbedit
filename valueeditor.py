@@ -41,6 +41,7 @@ class ValueEditor(QWidget):
 		else:	
 			self.editbox.setText( str(getattr(container, fd.name)))
 
+		print "fd.type=",fd.type
 		if fd.type in [FD.DOUBLE, FD.FLOAT] :
 			self.editbox.setValidator( QDoubleValidator(self.editbox))
 		elif fd.type in [FD.UINT32, FD.UINT64]:

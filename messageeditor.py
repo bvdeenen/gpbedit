@@ -66,10 +66,11 @@ class MessageEditor(QWidget):
 	
 	def remove_message(self):
 		parent = self.widgetitem.parent()
-		parent.removeChild(self.widgetitem)
+		print "remove_message\n", self.widgetitem.gpbitem
 		container = parent.gpbitem
 		container.ClearField(self.widgetitem.gpbitem)
 		del self.widgetitem
+		parent.removeChild(self.widgetitem)
 		self.emit( SIGNAL("closeMe()"))
 		
 	def set_treewidget(self, widgetitem):
@@ -92,6 +93,8 @@ class MessageEditor(QWidget):
 		self.set_popup_menu(self.optionalpopup, self.unfilled_optional_fields)
 
 		self.deletebutton.setEnabled( self.widgetitem.parent()!=None )
+
+		# print "set_treewidget", self.widgetitem.gpbitem
 	
 	
 	def set_popup_menu(self, menu, dict) :
