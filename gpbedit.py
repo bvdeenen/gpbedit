@@ -22,79 +22,52 @@ class FieldTreeItem(QTreeWidgetItem):
 
 	def set_column_data(self):
 
-		container = self.parent().gpbitem
 		fd=self.field_desc
 		t = fd.type
 
 		if t == FD.STRING:
 			default_value=fd.default_value
-			value = getattr(container, fd.name)
+			#value = getattr(container, fd.name)
 		elif t==FD.ENUM:
-			value = getattr(container, fd.name)
-			value=fd.enum_type.values_by_number[value].name
+			#value = getattr(container, fd.name)
+			#value=fd.enum_type.values_by_number[value].name
 			default_choice=fd.default_value
 			default_value = fd.enum_type.values_by_number[default_choice].name
 		else:	
 			default_value=unicode(fd.default_value)
-			value = unicode(getattr(container, fd.name))
+			#value = unicode(getattr(container, fd.name))
 
 		self.setText(0, fd.name)
 		self.setText(1, str(t))
 		self.setText(2, FD.type_map[t].lower())
 		self.setText(3, FD.label_map[fd.label].lower())
 		self.setText(4,default_value)
-		self.setText(5, value)
+		self.setText(5, "")
 
 class MessageTreeItem(QTreeWidgetItem):
 
-	def __init__(self, field_desc, gpbitem, parent=None):
+	def __init__(self, field_desc, parent=None):
 		QTreeWidgetItem.__init__(self,parent)
 
+		print "creating MessageTreeItem for ", field_desc.name
 		self.setExpanded(True)
 		self.field_desc = field_desc
-		if not gpbitem: 
-			print "ERROR MessageTreeItem without gpbitem"
-			sys.exit(1)
-		else:
-			print "gpbitem='",gpbitem,"'", type(gpbitem)
-		self.gpbitem = gpbitem
+
 		self.createFieldCategories()
+		print self.required_fields
 
-		if not field_desc:  # for the top level
-			self.setText(0,gpbitem.DESCRIPTOR.name)
-		else: 
-			labels=[field_desc.name, "", gpbitem.DESCRIPTOR.name ,FD.label_map[field_desc.label].lower()]
-			for i,l in enumerate(labels): self.setText(i,str(l))
+		self.setText(0,self.field_desc.name)
 
-		ct=self.createRequiredFieldItems()
-
-		for field_desc, object in self.gpbitem.ListFields():
-			if field_desc.type== FD.MESSAGE:
-				if field_desc.label == FD.REPEATED: 
-					for fi in object:
-						MessageTreeItem(field_desc, fi, self)
-				else: # required or optional
-					MessageTreeItem(field_desc, object, self)
-			else: # its a non-message field
-				if field_desc.label == FD.REPEATED: 
-					for fi in object:
-						FieldTreeItem(field_desc, self)
-				else: # optional or required
-					FieldTreeItem(field_desc, self)
-		self.createRequiredMessageItems()			
+		ct=self.createRequiredFields()
 
 	
-	def createRequiredFieldItems(self):
+	def createRequiredFields(self):
 		i=0
-		for fieldname, fd in self.required_fields.items():
-			if self.gpbitem.HasField(fd.name): continue # it's already defined
-			if fd.type == FD.MESSAGE :  continue # only fields
-
-			# create a field when it is required and not yet existing
-			# the FieldTreeItem is created from the MessageTreeItem constructor
-			i+=1
-			setattr(self.gpbitem, fd.name, fd.default_value)
-		return i			
+		for fieldname, field_desc in self.required_fields.items():
+			if field_desc.type == FD.MESSAGE :  
+				MessageTreeItem(field_desc.message_type, self)
+			else:	
+				FieldTreeItem(field_desc, self)
 
 	def createRequiredMessageItems(self):
 		i=0
@@ -138,7 +111,8 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.required_fields={}
 		self.optional_fields={}
 		self.repeated_fields={}
-		for fieldname, fd in self.gpbitem.DESCRIPTOR.fields_by_name.items():
+		print "createFieldCategories for ", self.field_desc.name, type(self.field_desc)
+		for fieldname, fd in self.field_desc.fields_by_name.items():
 			if fd.label == FD.OPTIONAL : 
 				self.optional_fields[fieldname] = fd
 			elif fd.label ==FD.REQUIRED : 
@@ -179,7 +153,7 @@ class TreeWidget(QTreeWidget):
 		self.clear_gpb()
 		self.filename=filename
 		f=open(filename,"rb")
-		gpb=settings.empty_root_message()
+		gpb=settings.gpb_root_descriptor()
 		gpb.ParseFromString( f.read())
 		f.close()
 		self.create_toplevel(gpb)
@@ -199,7 +173,7 @@ class TreeWidget(QTreeWidget):
 	def create_toplevel(self, gpb=None):
 		print "create_toplevel, gpb=",gpb
 		if not gpb:
-			gpb=settings.empty_root_message()
+			gpb=settings.gpb_root_descriptor()
 		print "gpb=",gpb	
 		top=MessageTreeItem(None, gpb)
 		self.addTopLevelItem(top)
@@ -227,7 +201,7 @@ if __name__ == "__main__":
 
 	settings.read_settings_file()
 	
-	gpb_top = MessageTreeItem( None, settings.empty_root_message())
+	gpb_top = MessageTreeItem( settings.gpb_root_descriptor())
 	treewidget.addTopLevelItem(gpb_top)
 
 	layout.addWidget(treewidget, 1)

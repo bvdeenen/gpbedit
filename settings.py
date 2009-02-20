@@ -77,8 +77,8 @@ def read_settings_file():
 
 	compile_protofiles(protofiles)
 	import_proto()
-	gpb_root = empty_root_message()	
-	print "gpb_root=",gpb_root, type(gpb_root)
+	#gpb_root = gpb_root_descriptor()	
+	#print "gpb_root=",gpb_root, type(gpb_root)
 	
 def compile_protofiles(protofiles):	
 	for p in protofiles.split():
@@ -87,8 +87,6 @@ def compile_protofiles(protofiles):
 		if status :
 			print cmd,"had error", output
 			sys.exit(1)
-		else:
-			print cmd, output
 def import_proto():
 	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
@@ -97,14 +95,19 @@ def import_proto():
 	all_module_members = map(lambda n: (n,type( getattr(gpb_module,n))), dir(gpb_module))
 	messages = [(name) for name,t  in all_module_members \
 		if t == google.protobuf.reflection.GeneratedProtocolMessageType]
-	print messages
+	#print messages
 
-def empty_root_message():
+def get_descriptor(name):
+	global gpb_module
+	d= getattr(gpb_module, name)
+	print "get_descriptor(",name,")='",d,"', type=",type(d)
+	return d.DESCRIPTOR
+	
+def gpb_root_descriptor():
 	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
-	v= eval("gpb_module."+ message+"()")
-	print "empty_root_message=",v,type(v)
-	return v
+	return get_descriptor(message)
+	
 
 
 if __name__ == '__main__':
