@@ -77,8 +77,6 @@ def read_settings_file():
 
 	compile_protofiles(protofiles)
 	import_proto()
-	#gpb_root = gpb_root_descriptor()	
-	#print "gpb_root=",gpb_root, type(gpb_root)
 	
 def compile_protofiles(protofiles):	
 	for p in protofiles.split():
@@ -100,13 +98,18 @@ def import_proto():
 def get_descriptor(name):
 	global gpb_module
 	d= getattr(gpb_module, name)
-	print "get_descriptor(",name,")='",d,"', type=",type(d)
 	return d.DESCRIPTOR
 	
 def gpb_root_descriptor():
 	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
 	return get_descriptor(message)
+
+def new_gpb_root():
+	global gpb_module, rootmessage
+	module, message = rootmessage.split(".")
+	d= getattr(gpb_module, message)
+	return d()
 	
 
 

@@ -15,9 +15,14 @@ import settings
 class FieldTreeItem(QTreeWidgetItem):
 	""" for tree items that represent a non-message field of a message object
 	"""
-	def __init__(self, field_desc, parent=None):
+	def __init__(self, field_desc, value= None, parent=None):
 		QTreeWidgetItem.__init__(self,parent)
 		self.field_desc = field_desc
+		if value != None:
+			self._value=value
+			print self.field_desc.name, value, type(value)
+		else:
+			self._value=self.field_desc.default_value
 		self.set_column_data()
 
 	def set_column_data(self):
@@ -27,83 +32,60 @@ class FieldTreeItem(QTreeWidgetItem):
 
 		if t == FD.STRING:
 			default_value=fd.default_value
-			#value = getattr(container, fd.name)
+			self.setText(5,self._value)
 		elif t==FD.ENUM:
-			#value = getattr(container, fd.name)
-			#value=fd.enum_type.values_by_number[value].name
-			default_choice=fd.default_value
-			default_value = fd.enum_type.values_by_number[default_choice].name
+			self.setText(5,fd.enum_type.values_by_number[self._value].name)
+			default_value = fd.enum_type.values_by_number[fd.default_value].name
 		else:	
 			default_value=unicode(fd.default_value)
-			#value = unicode(getattr(container, fd.name))
+			self.setText(5,unicode(self._value))
 
 		self.setText(0, fd.name)
-		self.setText(1, str(t))
-		self.setText(2, FD.type_map[t].lower())
-		self.setText(3, FD.label_map[fd.label].lower())
+		self.setText(1, FD.type_map[t].lower())
+		self.setText(2, FD.label_map[fd.label].lower())
 		self.setText(4,default_value)
-		self.setText(5, "")
+		
 
 class MessageTreeItem(QTreeWidgetItem):
 
-	def __init__(self, field_desc, parent=None):
+	def __init__(self, field_desc, field=None, gpbobject = None, parent=None):
 		QTreeWidgetItem.__init__(self,parent)
 
-		print "creating MessageTreeItem for ", field_desc.name
+		print "MessageTreeItem(", field_desc.name,")"
+
 		self.setExpanded(True)
 		self.field_desc = field_desc
+		self.gpbobject = gpbobject
+
 
 		self.createFieldCategories()
-		print self.required_fields
-
-		self.setText(0,self.field_desc.name)
-
-		ct=self.createRequiredFields()
-
-	
-	def createRequiredFields(self):
-		i=0
-		for fieldname, field_desc in self.required_fields.items():
-			if field_desc.type == FD.MESSAGE :  
-				MessageTreeItem(field_desc.message_type, self)
-			else:	
-				FieldTreeItem(field_desc, self)
-
-	def createRequiredMessageItems(self):
-		i=0
-		for fieldname, fd in self.required_fields.items():
-			if self.gpbitem.HasField(fd.name): continue # it's already defined
-			if fd.type != FD.MESSAGE : continue # only message items
-			self.createNestedMessage(fieldname)
-			i+=1
-		return i			
-
-	def add_gpb_child(self, fd):
-		if fd.type == FD.MESSAGE:
-			child = self.createNestedMessage(fd.name)
+		if field :
+			self.setText(0,field.name)
+			self.setText(2,FD.label_map[field.label].lower())
 		else:	
-			child = FieldTreeItem(fd, self)
-		self.treeWidget().setCurrentItem(child)
-		#self.treeWidget().emit( SIGNAL("itemClicked(QTreeWidgetItem*, int)"), child,0)
-		
-	def createNestedMessage(self, fieldname):
-		fd= self.gpbitem.DESCRIPTOR.fields_by_name[fieldname]
+			self.setText(0,"^^^")
 
-		if fd.type==FD.MESSAGE : # message
-			if fd.label==FD.REPEATED : # repeated
-				o = getattr(self.gpbitem, fieldname)
-				gpbmessage = o.add()
-				child = MessageTreeItem(fd, gpbmessage, self)
-			else: # optional or required
-				o = getattr(self.gpbitem, fieldname)
-				child = MessageTreeItem(fd, o, self)
-				
-		self.treeWidget().emit_gpbupdate()		
-		return child
-	
+			
+		self.setText(1,self.field_desc.name)
 
-				
-
+		if self.gpbobject:
+			for field, o in self.gpbobject.ListFields():
+				if field.type == FD.MESSAGE :  
+					if field.label==FD.REPEATED :
+						for i in range(len(o)):
+							o1=getattr(self.gpbobject,field.name)[i]
+							MessageTreeItem (field.message_type, field, o1, self)
+					else:		
+						o1=getattr(self.gpbobject,field.name)
+						MessageTreeItem (field.message_type, field, o1, self)
+				else:	
+					FieldTreeItem(field, o, self)
+		else:
+			for fieldname, field_desc in self.required_fields.items():
+				if field_desc.type == FD.MESSAGE :  
+					MessageTreeItem(field_desc.message_type, field_desc, None, None, self)
+				else:	
+					FieldTreeItem(field_desc, None, self)
 
 	def createFieldCategories(self):
 		""" create the tree dictionaries with fields of this message type
@@ -133,7 +115,8 @@ class TreeWidget(QTreeWidget):
 	def emit_gpbupdate(self):
 		""" our gpb object(s) have changed
 		"""
-		self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self.topLevelItem(0))
+		pass
+		#self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self.topLevelItem(0))
 
 	def save_gpb(self):
 		filename = QFileDialog.getSaveFileName(self, "save gpb file", self.filename)
@@ -153,29 +136,21 @@ class TreeWidget(QTreeWidget):
 		self.clear_gpb()
 		self.filename=filename
 		f=open(filename,"rb")
-		gpb=settings.gpb_root_descriptor()
+		gpb=settings.new_gpb_root()
 		gpb.ParseFromString( f.read())
+		print google.protobuf.text_format.MessageToString(gpb)
 		f.close()
 		self.create_toplevel(gpb)
-		# top=MessageTreeItem(None, gpb)
-		# self.addTopLevelItem(top)
-		# self.expandItem(top)
-		# self.emit_gpbupdate()
 
 
 	def clear_gpb(self):
 		global editwidget
 		editwidget.no_edit()
-		c= self.topLevelItem(0)
-		del c
+		#c= self.topLevelItem(0)
 		self.invisibleRootItem().removeChild( self.topLevelItem(0))
 	
 	def create_toplevel(self, gpb=None):
-		print "create_toplevel, gpb=",gpb
-		if not gpb:
-			gpb=settings.gpb_root_descriptor()
-		print "gpb=",gpb	
-		top=MessageTreeItem(None, gpb)
+		top=MessageTreeItem(settings.gpb_root_descriptor(), None, gpb)
 		self.addTopLevelItem(top)
 		self.expandItem(top)
 		self.emit_gpbupdate()
@@ -201,8 +176,7 @@ if __name__ == "__main__":
 
 	settings.read_settings_file()
 	
-	gpb_top = MessageTreeItem( settings.gpb_root_descriptor())
-	treewidget.addTopLevelItem(gpb_top)
+	treewidget.create_toplevel()
 
 	layout.addWidget(treewidget, 1)
 
@@ -240,7 +214,6 @@ if __name__ == "__main__":
 
 	editwidget.make_connections(treewidget)
 
-	treewidget.expandItem(gpb_top)
 	treewidget.setColumnWidth(0,220)
 	treewidget.setColumnWidth(1,60)
 	mainwindow.setMinimumSize(QSize(1000,800))
