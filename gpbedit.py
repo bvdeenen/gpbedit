@@ -16,7 +16,7 @@ class FieldTreeItem(QTreeWidgetItem):
 	""" for tree items that represent a non-message field of a message object
 	"""
 	def __init__(self, field_desc, value= None, parent=None):
-		QTreeWidgetItem.__init__(self,parent)
+		QTreeWidgetItem.__init__(self,parent, QTreeWidgetItem.UserType+1)
 		self.field_desc = field_desc
 		if value != None:
 			self._value=value
@@ -49,13 +49,14 @@ class FieldTreeItem(QTreeWidgetItem):
 class MessageTreeItem(QTreeWidgetItem):
 
 	def __init__(self, field_desc, field=None, gpbobject = None, parent=None):
-		QTreeWidgetItem.__init__(self,parent)
+		QTreeWidgetItem.__init__(self,parent, QTreeWidgetItem.UserType)
 
 		print "MessageTreeItem(", field_desc.name,")"
 
 		self.setExpanded(True)
 		self.field_desc = field_desc
 		self.gpbobject = gpbobject
+		self.field=field
 
 
 		self.createFieldCategories()
@@ -83,7 +84,7 @@ class MessageTreeItem(QTreeWidgetItem):
 		else:
 			for fieldname, field_desc in self.required_fields.items():
 				if field_desc.type == FD.MESSAGE :  
-					MessageTreeItem(field_desc.message_type, field_desc, None, None, self)
+					MessageTreeItem(field_desc.message_type, field_desc, None, self)
 				else:	
 					FieldTreeItem(field_desc, None, self)
 
@@ -104,6 +105,21 @@ class MessageTreeItem(QTreeWidgetItem):
 			else:
 				print "unknown label"
 				sys.exit(1)
+
+	def add_child(self, fieldname):
+		print "add_child", fieldname
+		preceding = self.find_child_by_name(fieldname)
+		fd=self.field_desc.fields_by_name[fieldname]
+		MessageTreeItem(fd.message_type, fd, None, self)
+		
+
+	def find_child_by_name(self,name):
+		for i in xrange(self.childCount()):
+			c=self.child(i)
+			if c.type() == QTreeWidgetItem.UserType and \
+				c.field and c.field.name == name :
+				return c
+		return None
 
 		
 class TreeWidget(QTreeWidget):

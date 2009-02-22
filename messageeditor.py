@@ -31,7 +31,7 @@ class MessageEditor(QWidget):
 		grid.addWidget(self.repeatedmenubutton, gridrow,1)
 
 		QObject.connect(self.repeatedpopup, SIGNAL("triggered(QAction *)"),
-			self.add_gpb_child)
+			self.add_child)
 
 		gridrow+=1
 		grid.addWidget(QLabel("Optional"), gridrow, 0)
@@ -41,7 +41,7 @@ class MessageEditor(QWidget):
 		grid.addWidget(self.optionalmenubutton, gridrow,1)
 
 		QObject.connect(self.optionalpopup, SIGNAL("triggered(QAction *)"),
-			self.add_gpb_child)
+			self.add_child)
 
 		gridrow+=1
 		grid.addWidget(QLabel("Remove object"), gridrow, 0)
@@ -54,39 +54,24 @@ class MessageEditor(QWidget):
 
 		vbox.addStretch()
 
-	def add_gpb_child(self, action):
+	def add_child(self, action):
 		field_name = str(action.text())
 
-		print "self.widgetitem=",self.widgetitem
-		container = self.widgetitem.gpbitem
-		print field_name, "container=",container
-		
-		fd = container.DESCRIPTOR.fields_by_name[field_name]
-		self.widgetitem.add_gpb_child(fd)
+		self.widgetitem.add_child(field_name)
 	
 	def remove_message(self):
-		parent = self.widgetitem.parent()
-		print "remove_message\n", self.widgetitem.gpbitem
-		container = parent.gpbitem
-		container.ClearField(self.widgetitem.gpbitem)
-		del self.widgetitem
-		parent.removeChild(self.widgetitem)
 		self.emit( SIGNAL("closeMe()"))
+		self.widgetitem.parent.removeChild(self.widgetitem)
 		
 	def set_treewidget(self, widgetitem):
 		self.widgetitem=widgetitem
-		container = self.widgetitem.gpbitem
-		if widgetitem.field_desc:
-			self.fd = widgetitem.field_desc
-			self.namelabel.setText(widgetitem.field_desc.name)
-		else:	
-			self.fd = None
-			self.namelabel.setText("no parent")
+		self.fd = widgetitem.field_desc
+		self.namelabel.setText(widgetitem.field_desc.name)
 
 		self.unfilled_optional_fields={}
 
 		for name,fd in  widgetitem.optional_fields.items():
-			if not container.HasField(name):
+			if not widgetitem.find_child_by_name(name):
 				self.unfilled_optional_fields[name]=fd
 			
 		self.set_popup_menu(self.repeatedpopup, widgetitem.repeated_fields)
@@ -94,7 +79,6 @@ class MessageEditor(QWidget):
 
 		self.deletebutton.setEnabled( self.widgetitem.parent()!=None )
 
-		# print "set_treewidget", self.widgetitem.gpbitem
 	
 	
 	def set_popup_menu(self, menu, dict) :
