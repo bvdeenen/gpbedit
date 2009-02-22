@@ -60,8 +60,9 @@ class MessageEditor(QWidget):
 		self.widgetitem.add_child(field_name)
 	
 	def remove_message(self):
+		self.widgetitem.parent().removeChild(self.widgetitem)
+		del self.widgetitem
 		self.emit( SIGNAL("closeMe()"))
-		self.widgetitem.parent.removeChild(self.widgetitem)
 		
 	def set_treewidget(self, widgetitem):
 		self.widgetitem=widgetitem
