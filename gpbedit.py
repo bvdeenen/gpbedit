@@ -25,6 +25,13 @@ class FieldTreeItem(QTreeWidgetItem):
 			self._value=self.field_desc.default_value
 		self.set_column_data()
 
+	def get_value(self): 
+		return self._value
+
+	def set_value(self, value):
+		self._value=value
+		self.set_column_data()
+
 	def set_column_data(self):
 
 		fd=self.field_desc
