@@ -31,17 +31,15 @@ class ValueEditor(QWidget):
 	def set_treewidget(self, widgetitem):
 		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
-		container = widgetitem.parent().gpbitem
 
 		self.typelabel.setText(FD.type_map[fd.type])
 
 		self.namelabel.setText(fd.name)
 		if fd.type==FD.STRING:
-			self.editbox.setText( getattr(container, fd.name))
+			self.editbox.setText( widgetitem.get_value())
 		else:	
-			self.editbox.setText( str(getattr(container, fd.name)))
+			self.editbox.setText( unicode(widgetitem.get_value()))
 
-		print "fd.type=",fd.type
 		if fd.type in [FD.DOUBLE, FD.FLOAT] :
 			self.editbox.setValidator( QDoubleValidator(self.editbox))
 		elif fd.type in [FD.UINT32, FD.UINT64]:
@@ -54,16 +52,14 @@ class ValueEditor(QWidget):
 	def editFinished(self) :
 		v = unicode(self.editbox.text())
 		fd = self.widgetitem.field_desc
-		container = self.widgetitem.parent().gpbitem
 
 		if  fd.type == FD.STRING :
-			setattr(container, fd.name, v)
+			self.widgetitem.set_value(v)
 		elif fd.type in [FD.DOUBLE, FD.FLOAT]:
-			setattr(container, fd.name, float(v))
+			self.widgetitem.set_value(float(v))
 		else:
-			setattr(container, fd.name, int(v))
+			self.widgetitem.set_value(int(v))
 
-		self.widgetitem.set_column_data()
 		self.widgetitem.treeWidget().emit_gpbupdate()
 
 

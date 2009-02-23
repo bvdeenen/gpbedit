@@ -4,6 +4,8 @@ from google.protobuf import text_format
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+import settings
+import buildgpb
 
 
 class DebugWidget(QTextEdit):
@@ -12,7 +14,13 @@ class DebugWidget(QTextEdit):
 		self.setReadOnly(True)
 
 	# slot called when TreeWidget has updated the gpb_top object
-	def slot_gpbobject_updated(self, gpb_top):	
-		self.setText(text_format.MessageToString(gpb_top.gpbitem))
+	def slot_gpbobject_updated(self, treewidget):	
+		topmessage=treewidget.topLevelItem(0)
+		
+		o=settings.new_gpb_root()
+
+		buildgpb.Builder( o, topmessage )
+
+		self.setText(text_format.MessageToString(o))
 
 
