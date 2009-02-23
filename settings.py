@@ -30,7 +30,7 @@ def create_settings_file():
 	global rootmessage, loadfile, settings_file_name
 	qstrlist = QFileDialog.getOpenFileNames(None, "pick at least one .proto file", "", "proto files (*.proto)")
 	filelist=[str(x) for x in qstrlist]
-	protofiles = " ".join(filelist)
+	protofiles = "||".join(filelist)
 
 	compile_protofiles(protofiles)
 	all_messages=[]
@@ -82,7 +82,7 @@ def read_settings_file():
 	
 def compile_protofiles(protofiles):	
 		
-	for p in protofiles.split():
+	for p in protofiles.split("||"):
 		cmd="protoc --python_out=. -I%s %s" % (os.path.dirname(p), os.path.abspath(p))
 		if sys.platform=='win32':
 			pipe=os.popen(cmd,'r')
