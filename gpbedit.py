@@ -124,7 +124,7 @@ class MessageTreeItem(QTreeWidgetItem):
 		if fd.type == FD.MESSAGE :  
 			c=MessageTreeItem(fd.message_type, fd, None, self)
 		else:	
-			c=ieldTreeItem(fd, None, self)
+			c=FieldTreeItem(fd, None, self)
 		
 		self.move_child(c, preceding)
 
@@ -132,16 +132,41 @@ class MessageTreeItem(QTreeWidgetItem):
 		
 	def move_child(self, child, precedingchild):
 		if not child.parent() : return
+		p=child.parent()
 		if not precedingchild: 
 			# very first
 			p.removeChild(child)
 			p.insertChild(0,child)
 		else:	
-			p=child.parent()
 			i = p.indexOfChild(precedingchild)
 			p.removeChild(child)
 			p.insertChild(i+1,child)
 		child.treeWidget().setCurrentItem(child)	
+		self.treeWidget().emit_gpbupdate()
+
+	def find_same_type_siblings(self):
+		if not self.parent() : 
+			return []
+		return self.parent().find_children_by_name( self.field.name) 
+
+	def move_by_one_enabled(self,dir):
+		s = self.find_same_type_siblings()
+		if not s or len(s)==1: 
+			return None
+		i=s.index(self)
+		if (i==0 and dir == -1) or (i==len(s)-1 and dir==+1) :
+			return None
+		return s
+		
+	def move_by_one(self, dir):
+		s = self.move_by_one_enabled(dir)
+		if not s: return
+		p=self.parent()
+		i=s.index(self)
+		p.removeChild(self)
+		p.insertChild(i+dir,self)
+		self.treeWidget().setCurrentItem(self)	
+		self.treeWidget().emit_gpbupdate()
 
 
 	def find_children_by_name(self,name):
@@ -150,6 +175,7 @@ class MessageTreeItem(QTreeWidgetItem):
 			c=self.child(i)
 			if c.get_fieldname() == name :
 				children.append(c)
+		#print "find_children_by_name(",name,")=",children			
 		return children
 		
 

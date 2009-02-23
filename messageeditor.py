@@ -45,7 +45,6 @@ class MessageEditor(QWidget):
 			self.add_child)
 
 		gridrow+=1
-		gridrow+=1
 		grid.addWidget(QLabel("Remove object"), gridrow, 0)
 		self.deletebutton = QPushButton(self)
 		self.deletebutton.setText("Delete")
@@ -53,6 +52,21 @@ class MessageEditor(QWidget):
 
 		QObject.connect(self.deletebutton, SIGNAL("clicked()"),
 			self.remove_message)
+
+		gridrow+=1
+		grid.addWidget(QLabel("Move object"), gridrow, 0)
+		self.moveup_button = QPushButton(self)
+		self.moveup_button.setText("Up")
+		self.movedown_button = QPushButton(self)
+		self.movedown_button.setText("Down")
+
+		h=QHBoxLayout(self)
+		h.addWidget(self.moveup_button)
+		h.addWidget(self.movedown_button)
+		grid.addLayout(h, gridrow, 1)
+
+		QObject.connect(self.moveup_button, SIGNAL("clicked()"), self.moveup)
+		QObject.connect(self.movedown_button, SIGNAL("clicked()"), self.movedown)
 
 		vbox.addStretch()
 
@@ -81,6 +95,14 @@ class MessageEditor(QWidget):
 				unfilled_optional_fields[name]=fd
 		self.set_popup_menu(self.optionalpopup, unfilled_optional_fields)
 
+	def moveup(self):
+		self.widgetitem.move_by_one(-1)
+		self.set_movebuttons_enable()
+		
+	def movedown(self):
+		self.widgetitem.move_by_one(1)
+		self.set_movebuttons_enable()
+
 	def set_treewidget(self, widgetitem):
 		self.widgetitem=widgetitem
 		self.fd = widgetitem.field_desc
@@ -92,7 +114,11 @@ class MessageEditor(QWidget):
 
 		self.deletebutton.setVisible( self.widgetitem.parent()!=None and self.widgetitem.field != None \
 			and self.widgetitem.field.label != FD.REQUIRED )
+		self.set_movebuttons_enable()	
 
+	def set_movebuttons_enable(self):
+		self.moveup_button.setEnabled( self.widgetitem.move_by_one_enabled(-1)!=None)
+		self.movedown_button.setEnabled( self.widgetitem.move_by_one_enabled(1)!=None)
 	
 	
 	def set_popup_menu(self, menu, dict) :
