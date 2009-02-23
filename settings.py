@@ -81,9 +81,15 @@ def read_settings_file():
 	print "gpb_root=",gpb_root, type(gpb_root)
 	
 def compile_protofiles(protofiles):	
+		
 	for p in protofiles.split():
-		cmd="protoc --python_out=. -I%s %s" % (os.path.dirname(p), p)
-		(status,output) = commands.getstatusoutput(cmd)
+		cmd="protoc --python_out=. -I%s %s" % (os.path.dirname(p), os.path.abspath(p))
+		if sys.platform=='win32':
+			pipe=os.popen(cmd,'r')
+			output=pipe.read()
+			status=pipe.close()
+		else:		
+			(status,output) = commands.getstatusoutput(cmd)
 		if status :
 			print cmd,"had error", output
 			sys.exit(1)
@@ -112,3 +118,5 @@ if __name__ == '__main__':
 	mainwindow=QWidget()
 	mainwindow.show()
 	read_settings_file()
+
+#vim:ts=4	
