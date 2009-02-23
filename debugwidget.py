@@ -21,6 +21,9 @@ class DebugWidget(QTextEdit):
 
 		buildgpb.Builder( o, topmessage )
 
-		self.setText(text_format.MessageToString(o))
+		warning = ""
+		if not o.IsInitialized() : warning = "WARNING, gpb object is incomplete\n"
+		self.setText(warning + text_format.MessageToString(o))
+
 
 

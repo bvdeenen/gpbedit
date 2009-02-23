@@ -3,6 +3,7 @@
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+import FD
 
 
 class MessageEditor(QWidget):
@@ -52,36 +53,72 @@ class MessageEditor(QWidget):
 		QObject.connect(self.deletebutton, SIGNAL("clicked()"),
 			self.remove_message)
 
+		gridrow+=1
+		grid.addWidget(QLabel("Move object"), gridrow, 0)
+		self.moveup_button = QPushButton(self)
+		self.moveup_button.setText("Up")
+		self.movedown_button = QPushButton(self)
+		self.movedown_button.setText("Down")
+
+		h=QHBoxLayout(self)
+		h.addWidget(self.moveup_button)
+		h.addWidget(self.movedown_button)
+		grid.addLayout(h, gridrow, 1)
+
+		QObject.connect(self.moveup_button, SIGNAL("clicked()"), self.moveup)
+		QObject.connect(self.movedown_button, SIGNAL("clicked()"), self.movedown)
+
 		vbox.addStretch()
 
 	def add_child(self, action):
 		field_name = str(action.text())
 
 		self.widgetitem.add_child(field_name)
-		self.set_treewidget( self.widgetitem) 
+		# remove this menu option if it was one of the optional fields
+		for action in self.optionalpopup.actions() :
+			if action.text() == field_name:
+				self.optionalpopup.removeAction( action) 
+		self.widgetitem.treeWidget().emit_gpbupdate()
 	
 	def remove_message(self):
+		treewidget = self.widgetitem.treeWidget()
 		self.widgetitem.parent().removeChild(self.widgetitem)
-		del self.widgetitem
 		self.emit( SIGNAL("closeMe()"))
+		del self.widgetitem
+		treewidget.emit_gpbupdate()
 		
+	def set_optional_enums(self):	
+		unfilled_optional_fields={}
+		filled_optional_fields={}
+		for name,fd in  self.widgetitem.optional_fields.items():
+			if not self.widgetitem.find_child_by_name(name):
+				unfilled_optional_fields[name]=fd
+		self.set_popup_menu(self.optionalpopup, unfilled_optional_fields)
+
+	def moveup(self):
+		self.widgetitem.move_by_one(-1)
+		self.set_movebuttons_enable()
+		
+	def movedown(self):
+		self.widgetitem.move_by_one(1)
+		self.set_movebuttons_enable()
+
 	def set_treewidget(self, widgetitem):
 		self.widgetitem=widgetitem
 		self.fd = widgetitem.field_desc
 		self.namelabel.setText(widgetitem.field_desc.name)
 
-		self.unfilled_optional_fields={}
-
-		for name,fd in  widgetitem.optional_fields.items():
-			if not widgetitem.find_child_by_name(name):
-				self.unfilled_optional_fields[name]=fd
-				
-			
 		self.set_popup_menu(self.repeatedpopup, widgetitem.repeated_fields)
-		self.set_popup_menu(self.optionalpopup, self.unfilled_optional_fields)
+		self.set_optional_enums()
 
-		self.deletebutton.setEnabled( self.widgetitem.parent()!=None )
 
+		self.deletebutton.setVisible( self.widgetitem.parent()!=None and self.widgetitem.field != None \
+			and self.widgetitem.field.label != FD.REQUIRED )
+		self.set_movebuttons_enable()	
+
+	def set_movebuttons_enable(self):
+		self.moveup_button.setEnabled( self.widgetitem.move_by_one_enabled(-1)!=None)
+		self.movedown_button.setEnabled( self.widgetitem.move_by_one_enabled(1)!=None)
 	
 	
 	def set_popup_menu(self, menu, dict) :

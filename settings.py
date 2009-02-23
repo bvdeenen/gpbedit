@@ -79,9 +79,8 @@ def read_settings_file():
 	import_proto()
 	
 def compile_protofiles(protofiles):	
-		
 	for p in protofiles.split("||"):
-		cmd="protoc --python_out=. -I%s %s" % (os.path.dirname(p), os.path.abspath(p))
+		cmd="protoc --python_out=. -I\"%s\" \"%s\"" % (os.path.dirname(p), os.path.abspath(p))
 		if sys.platform=='win32':
 			pipe=os.popen(cmd,'r')
 			output=pipe.read()
@@ -124,5 +123,3 @@ if __name__ == '__main__':
 	mainwindow=QWidget()
 	mainwindow.show()
 	read_settings_file()
-
-#vim:ts=4	
