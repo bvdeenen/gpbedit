@@ -17,13 +17,12 @@ class FieldTreeItem(QTreeWidgetItem):
 	"""
 	def __init__(self, field_desc, value= None, parent=None):
 		QTreeWidgetItem.__init__(self,parent, QTreeWidgetItem.UserType+1)
+		print "FieldTreeItem"
 		self.field_desc = field_desc
 		if value != None:
-			self._value=value
-			print self.field_desc.name, value, type(value)
+			self.set_value(value)
 		else:
-			self._value=self.field_desc.default_value
-		self.set_column_data()
+			self.set_value(field_desc.default_value)
 
 	def get_value(self): 
 		return self._value
@@ -33,6 +32,7 @@ class FieldTreeItem(QTreeWidgetItem):
 		self.set_column_data()
 
 	def set_column_data(self):
+		print "set_column_data"
 
 		fd=self.field_desc
 		t = fd.type
@@ -52,19 +52,21 @@ class FieldTreeItem(QTreeWidgetItem):
 		self.setText(2, FD.label_map[fd.label].lower())
 		self.setText(4,default_value)
 		
+	def get_fieldname(self):
+		return self.field_desc.name
 
 class MessageTreeItem(QTreeWidgetItem):
 
 	def __init__(self, field_desc, field=None, gpbobject = None, parent=None):
 		QTreeWidgetItem.__init__(self,parent, QTreeWidgetItem.UserType)
 
-		print "MessageTreeItem(", field_desc.name,")"
 
 		self.setExpanded(True)
 		self.field_desc = field_desc
 		self.gpbobject = gpbobject
 		self.field=field
 
+		print "MessageTreeItem", field_desc.name
 
 		self.createFieldCategories()
 		if field :
@@ -77,6 +79,7 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.setText(1,self.field_desc.name)
 
 		if self.gpbobject:
+			# we're constructing this object from an existing gpb object
 			for field, o in self.gpbobject.ListFields():
 				if field.type == FD.MESSAGE :  
 					if field.label==FD.REPEATED :
@@ -89,11 +92,16 @@ class MessageTreeItem(QTreeWidgetItem):
 				else:	
 					FieldTreeItem(field, o, self)
 		else:
+			# we're constructing a brand new object, with default data
 			for fieldname, field_desc in self.required_fields.items():
 				if field_desc.type == FD.MESSAGE :  
 					MessageTreeItem(field_desc.message_type, field_desc, None, self)
 				else:	
 					FieldTreeItem(field_desc, None, self)
+
+	def get_fieldname(self):
+		if not self.field : return None
+		return self.field.name
 
 	def createFieldCategories(self):
 		""" create the tree dictionaries with fields of this message type
@@ -101,7 +109,6 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.required_fields={}
 		self.optional_fields={}
 		self.repeated_fields={}
-		print "createFieldCategories for ", self.field_desc.name, type(self.field_desc)
 		for fieldname, fd in self.field_desc.fields_by_name.items():
 			if fd.label == FD.OPTIONAL : 
 				self.optional_fields[fieldname] = fd
@@ -117,14 +124,16 @@ class MessageTreeItem(QTreeWidgetItem):
 		print "add_child", fieldname
 		preceding = self.find_child_by_name(fieldname)
 		fd=self.field_desc.fields_by_name[fieldname]
-		MessageTreeItem(fd.message_type, fd, None, self)
+		if fd.type == FD.MESSAGE :  
+			MessageTreeItem(fd.message_type, fd, None, self)
+		else:	
+			FieldTreeItem(fd, None, self)
 		
 
 	def find_child_by_name(self,name):
 		for i in xrange(self.childCount()):
 			c=self.child(i)
-			if c.type() == QTreeWidgetItem.UserType and \
-				c.field and c.field.name == name :
+			if c.get_fieldname() == name :
 				return c
 		return None
 
@@ -139,7 +148,7 @@ class TreeWidget(QTreeWidget):
 		""" our gpb object(s) have changed
 		"""
 		pass
-		#self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self.topLevelItem(0))
+		#self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self)
 
 	def save_gpb(self):
 		filename = QFileDialog.getSaveFileName(self, "save gpb file", self.filename)
@@ -161,7 +170,6 @@ class TreeWidget(QTreeWidget):
 		f=open(filename,"rb")
 		gpb=settings.new_gpb_root()
 		gpb.ParseFromString( f.read())
-		print google.protobuf.text_format.MessageToString(gpb)
 		f.close()
 		self.create_toplevel(gpb)
 
@@ -228,8 +236,7 @@ if __name__ == "__main__":
 
 
 
-	QObject.connect( treewidget, SIGNAL("gpbobject_updated(PyQt_PyObject)"),
-		debugwidget.slot_gpbobject_updated)
+	QObject.connect( treewidget, SIGNAL("gpbobject_updated(PyQt_PyObject)"), debugwidget.slot_gpbobject_updated)
 
 	QObject.connect(savebutton, SIGNAL("clicked()"), treewidget.save_gpb)	
 	QObject.connect(openbutton, SIGNAL("clicked()"), treewidget.open_gpb)	

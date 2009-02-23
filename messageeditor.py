@@ -58,6 +58,7 @@ class MessageEditor(QWidget):
 		field_name = str(action.text())
 
 		self.widgetitem.add_child(field_name)
+		self.set_treewidget( self.widgetitem) 
 	
 	def remove_message(self):
 		self.widgetitem.parent().removeChild(self.widgetitem)
@@ -74,6 +75,7 @@ class MessageEditor(QWidget):
 		for name,fd in  widgetitem.optional_fields.items():
 			if not widgetitem.find_child_by_name(name):
 				self.unfilled_optional_fields[name]=fd
+				
 			
 		self.set_popup_menu(self.repeatedpopup, widgetitem.repeated_fields)
 		self.set_popup_menu(self.optionalpopup, self.unfilled_optional_fields)

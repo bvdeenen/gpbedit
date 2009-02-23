@@ -31,16 +31,11 @@ class BooleanEditor(QWidget):
 	def set_treewidget(self, widgetitem):
 		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
-		container = widgetitem.parent().gpbitem
-		descriptor=container.DESCRIPTOR
 
-		t=FD.type_map[fd.type]
-		self.typelabel.setText(t)
-
+		self.typelabel.setText(FD.type_map[fd.type])
 		self.namelabel.setText(fd.name)
 
-		value = getattr(container, fd.name)
-		if value :
+		if widgetitem.get_value() :
 			self.checkbox.setCheckState( Qt.Checked)
 		else:	
 			self.checkbox.setCheckState( Qt.Unchecked)
@@ -52,11 +47,8 @@ class BooleanEditor(QWidget):
 		v = self.checkbox.checkState()
 		if v : v=1
 
-		fd = self.widgetitem.field_desc
-		container = self.widgetitem.parent().gpbitem
-		setattr(container, fd.name, v)
+		self.widgetitem.set_value(v)
 
-		self.widgetitem.set_column_data()
 		self.widgetitem.treeWidget().emit_gpbupdate()
 
 
