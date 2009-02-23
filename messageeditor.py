@@ -90,7 +90,7 @@ class MessageEditor(QWidget):
 		self.set_optional_enums()
 
 
-		self.deletebutton.setVisible( self.widgetitem.parent() and self.widgetitem.field \
+		self.deletebutton.setVisible( self.widgetitem.parent()!=None and self.widgetitem.field != None \
 			and self.widgetitem.field.label != FD.REQUIRED )
 
 	

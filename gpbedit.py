@@ -89,6 +89,7 @@ class MessageTreeItem(QTreeWidgetItem):
 					FieldTreeItem(field, o, self)
 		else:
 			# we're constructing a brand new object, with default data
+			self.setExpanded(True)
 			for fieldname, field_desc in self.required_fields.items():
 				if field_desc.type == FD.MESSAGE :  
 					MessageTreeItem(field_desc.message_type, field_desc, None, self)
@@ -117,12 +118,39 @@ class MessageTreeItem(QTreeWidgetItem):
 				sys.exit(1)
 
 	def add_child(self, fieldname):
-		preceding = self.find_child_by_name(fieldname)
+		preceding = self.find_children_by_name(fieldname)
+		if preceding: preceding=preceding[-1] # last child
 		fd=self.field_desc.fields_by_name[fieldname]
 		if fd.type == FD.MESSAGE :  
-			MessageTreeItem(fd.message_type, fd, None, self)
+			c=MessageTreeItem(fd.message_type, fd, None, self)
 		else:	
-			FieldTreeItem(fd, None, self)
+			c=ieldTreeItem(fd, None, self)
+		
+		self.move_child(c, preceding)
+
+
+		
+	def move_child(self, child, precedingchild):
+		if not child.parent() : return
+		if not precedingchild: 
+			# very first
+			p.removeChild(child)
+			p.insertChild(0,child)
+		else:	
+			p=child.parent()
+			i = p.indexOfChild(precedingchild)
+			p.removeChild(child)
+			p.insertChild(i+1,child)
+		child.treeWidget().setCurrentItem(child)	
+
+
+	def find_children_by_name(self,name):
+		children=[]
+		for i in xrange(self.childCount()):
+			c=self.child(i)
+			if c.get_fieldname() == name :
+				children.append(c)
+		return children
 		
 
 	def find_child_by_name(self,name):
@@ -145,12 +173,25 @@ class TreeWidget(QTreeWidget):
 		self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self)
 
 	def save_gpb(self):
+
+		o=settings.new_gpb_root()
+		topmessage=self.topLevelItem(0)
+		buildgpb.Builder( o, topmessage )
+
+		if not o.IsInitialized() : 
+			msgBox = QMessageBox()
+			msgBox.setText("The GPB Object tree is incomplete. This is a bug, The file can not be saved")
+			msgBox._exec()
+			return
+
+
 		filename = QFileDialog.getSaveFileName(self, "save gpb file", self.filename)
 		if not filename : return
 		self.filename=filename
 
+		
 		f=open(filename,"wb")
-		f.write(self.topLevelItem(0).gpbitem.SerializeToString())
+		f.write(o.SerializeToString())
 		f.close()
 
 	def open_gpb(self):
