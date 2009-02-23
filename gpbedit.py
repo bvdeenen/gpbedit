@@ -16,8 +16,7 @@ class FieldTreeItem(QTreeWidgetItem):
 	""" for tree items that represent a non-message field of a message object
 	"""
 	def __init__(self, field_desc, value= None, parent=None):
-		QTreeWidgetItem.__init__(self,parent, QTreeWidgetItem.UserType+1)
-		print "FieldTreeItem"
+		QTreeWidgetItem.__init__(self,parent, 2001)
 		self.field_desc = field_desc
 		if value != None:
 			self.set_value(value)
@@ -32,7 +31,6 @@ class FieldTreeItem(QTreeWidgetItem):
 		self.set_column_data()
 
 	def set_column_data(self):
-		print "set_column_data"
 
 		fd=self.field_desc
 		t = fd.type
@@ -58,15 +56,13 @@ class FieldTreeItem(QTreeWidgetItem):
 class MessageTreeItem(QTreeWidgetItem):
 
 	def __init__(self, field_desc, field=None, gpbobject = None, parent=None):
-		QTreeWidgetItem.__init__(self,parent, QTreeWidgetItem.UserType)
+		QTreeWidgetItem.__init__(self,parent, 2000)
 
 
 		self.setExpanded(True)
 		self.field_desc = field_desc
 		self.gpbobject = gpbobject
 		self.field=field
-
-		print "MessageTreeItem", field_desc.name
 
 		self.createFieldCategories()
 		if field :
@@ -121,7 +117,6 @@ class MessageTreeItem(QTreeWidgetItem):
 				sys.exit(1)
 
 	def add_child(self, fieldname):
-		print "add_child", fieldname
 		preceding = self.find_child_by_name(fieldname)
 		fd=self.field_desc.fields_by_name[fieldname]
 		if fd.type == FD.MESSAGE :  
@@ -147,8 +142,7 @@ class TreeWidget(QTreeWidget):
 	def emit_gpbupdate(self):
 		""" our gpb object(s) have changed
 		"""
-		pass
-		#self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self)
+		self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self)
 
 	def save_gpb(self):
 		filename = QFileDialog.getSaveFileName(self, "save gpb file", self.filename)

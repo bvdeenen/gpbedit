@@ -3,6 +3,7 @@
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+import FD
 
 
 class MessageEditor(QWidget):
@@ -44,6 +45,7 @@ class MessageEditor(QWidget):
 			self.add_child)
 
 		gridrow+=1
+		gridrow+=1
 		grid.addWidget(QLabel("Remove object"), gridrow, 0)
 		self.deletebutton = QPushButton(self)
 		self.deletebutton.setText("Delete")
@@ -58,29 +60,38 @@ class MessageEditor(QWidget):
 		field_name = str(action.text())
 
 		self.widgetitem.add_child(field_name)
-		self.set_treewidget( self.widgetitem) 
+		# remove this menu option if it was one of the optional fields
+		for action in self.optionalpopup.actions() :
+			if action.text() == field_name:
+				self.optionalpopup.removeAction( action) 
+		self.widgetitem.treeWidget().emit_gpbupdate()
 	
 	def remove_message(self):
+		treewidget = self.widgetitem.treeWidget()
 		self.widgetitem.parent().removeChild(self.widgetitem)
-		del self.widgetitem
 		self.emit( SIGNAL("closeMe()"))
+		del self.widgetitem
+		treewidget.emit_gpbupdate()
 		
+	def set_optional_enums(self):	
+		unfilled_optional_fields={}
+		filled_optional_fields={}
+		for name,fd in  self.widgetitem.optional_fields.items():
+			if not self.widgetitem.find_child_by_name(name):
+				unfilled_optional_fields[name]=fd
+		self.set_popup_menu(self.optionalpopup, unfilled_optional_fields)
+
 	def set_treewidget(self, widgetitem):
 		self.widgetitem=widgetitem
 		self.fd = widgetitem.field_desc
 		self.namelabel.setText(widgetitem.field_desc.name)
 
-		self.unfilled_optional_fields={}
-
-		for name,fd in  widgetitem.optional_fields.items():
-			if not widgetitem.find_child_by_name(name):
-				self.unfilled_optional_fields[name]=fd
-				
-			
 		self.set_popup_menu(self.repeatedpopup, widgetitem.repeated_fields)
-		self.set_popup_menu(self.optionalpopup, self.unfilled_optional_fields)
+		self.set_optional_enums()
 
-		self.deletebutton.setEnabled( self.widgetitem.parent()!=None )
+
+		self.deletebutton.setVisible( self.widgetitem.parent() and self.widgetitem.field \
+			and self.widgetitem.field.label != FD.REQUIRED )
 
 	
 	
