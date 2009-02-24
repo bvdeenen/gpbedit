@@ -16,7 +16,12 @@ class Handler(SocketServer.BaseRequestHandler) :
 	def handle(self):
 		data = 'dummy'
 		while data:
-			data = self.request.recv(1024)
+			try:
+				data = self.request.recv(1024)
+			except:
+				self.finish()
+				return
+				
 
 	def finish(self):
 		print self.client_address,'disconnected'
@@ -53,10 +58,16 @@ class Server(Thread):
 		bytes= struct.pack("<l%ds" % (ct,) , ct, msg)
 		print "packed message of ", ct, "bytes"
 
+		deadclients=[]
 		for client in self.clients:
-			ct = client.request.send(bytes)
-			print "transmitted", ct, "wanted to transmit", len(bytes)
+			try:
+				ct = client.request.send(bytes)
+				print "transmitted", ct, "wanted to transmit", len(bytes)
+			except:
+				print "no client", client
+				deadclients.append(client)
 		
+		for c in deadclients: self.remove_client(c)
 
 
 	
