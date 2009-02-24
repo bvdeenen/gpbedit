@@ -41,11 +41,14 @@ class ValueEditor(QWidget):
 			self.editbox.setText( unicode(widgetitem.get_value()))
 
 		if fd.type in [FD.DOUBLE, FD.FLOAT] :
+			print "QDoubleValidator"
 			self.editbox.setValidator( QDoubleValidator(self.editbox))
 		elif fd.type in [FD.UINT32, FD.UINT64]:
 			self.editbox.setValidator( QIntValidator(self.editbox0, 0x7fffffff))
+			print "QIntValidator"
 		elif fd.type != FD.STRING:
 			self.editbox.setValidator( QIntValidator(self.editbox))
+			print "QIntValidator"
 		self.editbox.selectAll()
 		self.editbox.setFocus()	
 

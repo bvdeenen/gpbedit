@@ -2,6 +2,7 @@
 # vim:tw=120
 
 import sys
+import SocketServer
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
@@ -11,6 +12,7 @@ from itemeditor import *
 import google
 import FD
 import settings
+import tcppush
 
 class FieldTreeItem(QTreeWidgetItem):
 	""" for tree items that represent a non-message field of a message object
@@ -193,6 +195,9 @@ class TreeWidget(QTreeWidget):
 	def __init__(self, parent=None):
 		QTreeWidget.__init__(self, parent)
 		self.filename = ""
+		self.server = tcppush.Server('', 5009)
+		self.server.start()
+
 	def emit_gpbupdate(self):
 		""" our gpb object(s) have changed
 		"""
@@ -220,6 +225,17 @@ class TreeWidget(QTreeWidget):
 		f.write(o.SerializeToString())
 		f.close()
 
+	def serverpush(self):
+		o=settings.new_gpb_root()
+		topmessage=self.topLevelItem(0)
+		buildgpb.Builder( o, topmessage )
+
+		if not o.IsInitialized() : 
+			print "gpb incomplete"
+			return
+		
+		self.server.pushgpb(o)
+		
 	def open_gpb(self):
 		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename, "GPB files (*.gpb);;All files (*.*)")
 		if not filename: return
@@ -295,6 +311,8 @@ if __name__ == "__main__":
 	openbutton=QPushButton("&open gpb file", mainwindow)
 	rightvbox.addWidget(openbutton)
 
+	serverpush=QPushButton("&tcp push ", mainwindow)
+	rightvbox.addWidget(serverpush)
 
 
 	QObject.connect( treewidget, SIGNAL("gpbobject_updated(PyQt_PyObject)"), debugwidget.slot_gpbobject_updated)
@@ -302,6 +320,7 @@ if __name__ == "__main__":
 	QObject.connect(savebutton, SIGNAL("clicked()"), treewidget.save_gpb)	
 	QObject.connect(openbutton, SIGNAL("clicked()"), treewidget.open_gpb)	
 	QObject.connect(clearbutton, SIGNAL("clicked()"), treewidget.start_with_empty_toplevel)	
+	QObject.connect(serverpush, SIGNAL("clicked()"), treewidget.serverpush)	
 
 	editwidget.make_connections(treewidget)
 
