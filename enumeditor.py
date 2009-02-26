@@ -21,38 +21,37 @@ class EnumEditor(QWidget):
 		self.enumtypelabel=QLabel(self)
 		vbox.addWidget(self.enumtypelabel)
 
-		self.enumpopup=QMenu(self)
+		self.enumpopup=QComboBox(self)
 
-		self.menubutton = QPushButton(self)
-		self.menubutton.setMenu(self.enumpopup)
-		vbox.addWidget(self.menubutton)
+		vbox.addWidget(self.enumpopup)
 
-		QObject.connect(self.enumpopup, SIGNAL("triggered(QAction *)"),
+		QObject.connect(self.enumpopup, SIGNAL("currentIndexChanged(int)"),
 			self.pick_enum)
 
 		vbox.addStretch()
 	
 	def set_treewidget(self, widgetitem):
 
-		self.widgetitem = widgetitem
-		fd = self.widgetitem.field_desc
+		# so that the 'clear()' call does not generate an update in the widgetitem
+		self.widgetitem=None 
+
+		self.enumpopup.clear()
+		fd = widgetitem.field_desc
 
 		self.namelabel.setText(fd.name)
 		self.enumtypelabel.setText(fd.enum_type.name)
-		self.enumpopup.clear()
 
 		for key,value in fd.enum_type.values_by_number.items():
-			action = self.enumpopup.addAction("%d %s" %( value.number, value.name))
-			if  key == fd.default_value :
-				self.enumpopup.setActiveAction( action)
+			self.enumpopup.addItem("%d %s" %( value.number, value.name))
+			if  value.number == widgetitem.get_value():
+				self.enumpopup.setCurrentIndex(key)
 	
-	def pick_enum(self, action):
-		n,name = str(action.text()).split(None,1)
+		# only now connect the widgetitem
+		self.widgetitem = widgetitem
 
-		fd = self.widgetitem.field_desc
-		container = self.widgetitem.parent().gpbitem
-		setattr(container, fd.name, int(n))
-
-		self.widgetitem.set_column_data()
+	def pick_enum(self, index):
+		if index<0 or not self.widgetitem: return # don't care about these messages
+		v = self.widgetitem.field_desc.enum_type.values_by_number[index]
+		self.widgetitem.set_value( v.number)
 		self.widgetitem.treeWidget().emit_gpbupdate()
 

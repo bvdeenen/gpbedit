@@ -64,8 +64,6 @@ class ItemEditor(QWidget):
 
 		if type(widgetitem) == __main__.FieldTreeItem :
 			# edit a simple type
-			container = widgetitem.parent().gpbitem
-			value=getattr(container,fd.name)
 			if fd.type == FD.ENUM:
 				self.enumeditor.set_treewidget(widgetitem)
 				self.stack.setCurrentWidget(self.enumeditor)
