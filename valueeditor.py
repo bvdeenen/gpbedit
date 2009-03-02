@@ -27,6 +27,8 @@ class ValueEditor(QWidget):
 	
 		QObject.connect(self.editbox, SIGNAL("editingFinished()"),
 			self.editFinished)
+		QObject.connect(self.editbox, SIGNAL("returnPressed()"),
+			self.editFinished)
 
 	def set_treewidget(self, widgetitem):
 		self.widgetitem = widgetitem
