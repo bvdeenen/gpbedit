@@ -34,23 +34,28 @@ class ValueEditor(QWidget):
 		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
 
-		self.typelabel.setText(FD.type_map[fd.type])
+		T=fd.type
+		
+		self.typelabel.setText(FD.type_map[T])
 
 		self.namelabel.setText(fd.name)
-		if fd.type==FD.STRING:
+		if T==FD.STRING:
 			self.editbox.setText( widgetitem.get_value())
 		else:	
 			self.editbox.setText( unicode(widgetitem.get_value()))
 
-		if fd.type in [FD.DOUBLE, FD.FLOAT] :
+		print fd.type
+		if T in [FD.DOUBLE, FD.FLOAT] :
 			print "QDoubleValidator"
 			self.editbox.setValidator( QDoubleValidator(self.editbox))
-		elif fd.type in [FD.UINT32, FD.UINT64]:
+		elif T in [FD.UINT32, FD.UINT64]:
 			self.editbox.setValidator( QIntValidator(self.editbox0, 0x7fffffff))
 			print "QIntValidator"
-		elif fd.type != FD.STRING:
+		elif T != FD.STRING:
 			self.editbox.setValidator( QIntValidator(self.editbox))
 			print "QIntValidator"
+		else:
+			self.editbox.setValidator(None)
 		self.editbox.selectAll()
 		self.editbox.setFocus()	
 
