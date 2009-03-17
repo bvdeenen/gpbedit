@@ -55,7 +55,7 @@ class Server(Thread):
 		ct = gpbobject.ByteSize()
 
 
-		bytes= struct.pack("<l%ds" % (ct,) , ct, msg)
+		bytes= struct.pack(">l%ds" % (ct,) , ct, msg)
 		print "packed message of ", ct, "bytes"
 
 		deadclients=[]
