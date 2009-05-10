@@ -23,7 +23,10 @@ class FieldTreeItem(QTreeWidgetItem):
 		if value != None:
 			self.set_value(value)
 		else:
-			self.set_value(field_desc.default_value)
+			if field_desc.label == FD.REPEATED:
+				self.set_value(None)
+			else:
+				self.set_value(field_desc.default_value)
 
 	def get_value(self): 
 		return self._value
@@ -36,15 +39,25 @@ class FieldTreeItem(QTreeWidgetItem):
 
 		fd=self.field_desc
 		t = fd.type
+		print fd.type, fd.name, fd.default_value,  self._value
 
 		if t == FD.STRING:
 			default_value=fd.default_value
+			if fd.label == FD.REPEATED: default_value=""
+			if self._value==None :  self._value=""
 			self.setText(5,self._value)
 		elif t==FD.ENUM:
+			if self._value == None: self._value = 0
 			self.setText(5,fd.enum_type.values_by_number[self._value].name)
-			default_value = fd.enum_type.values_by_number[fd.default_value].name
+			if fd.label == FD.REPEATED: 
+				default_value = fd.enum_type.values_by_number[0].name
+			else:
+				default_value = fd.enum_type.values_by_number[fd.default_value].name
 		else:	
-			default_value=unicode(fd.default_value)
+			if fd.label == FD.REPEATED:
+				default_value=""
+			else:
+				default_value=unicode(fd.default_value)
 			self.setText(5,unicode(self._value))
 
 		self.setText(0, fd.name)
@@ -87,8 +100,13 @@ class MessageTreeItem(QTreeWidgetItem):
 					else:		
 						o1=getattr(self.gpbobject,field.name)
 						MessageTreeItem (field.message_type, field, o1, self)
-				else:	
-					FieldTreeItem(field, o, self)
+				else:
+					if field.label == FD.REPEATED:
+						for i in range(len(o)):
+							o1=getattr(self.gpbobject, field.name)[i]
+							FieldTreeItem(field, o1, self)
+					else:
+						FieldTreeItem(field, o, self)
 		else:
 			# we're constructing a brand new object, with default data
 			self.setExpanded(True)
@@ -123,6 +141,8 @@ class MessageTreeItem(QTreeWidgetItem):
 		preceding = self.find_children_by_name(fieldname)
 		if preceding: preceding=preceding[-1] # last child
 		fd=self.field_desc.fields_by_name[fieldname]
+
+		print "fd=",fd, fd.default_value
 		if fd.type == FD.MESSAGE :  
 			c=MessageTreeItem(fd.message_type, fd, None, self)
 		else:	
