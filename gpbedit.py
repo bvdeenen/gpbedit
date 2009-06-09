@@ -12,7 +12,6 @@ from itemeditor import *
 import google
 import FD
 import settings
-import tcppush
 
 class FieldTreeItem(QTreeWidgetItem):
 	""" for tree items that represent a non-message field of a message object
@@ -215,8 +214,6 @@ class TreeWidget(QTreeWidget):
 	def __init__(self, parent=None):
 		QTreeWidget.__init__(self, parent)
 		self.filename = ""
-		self.server = tcppush.Server('', 5009)
-		self.server.start()
 
 	def emit_gpbupdate(self):
 		""" our gpb object(s) have changed
@@ -254,7 +251,6 @@ class TreeWidget(QTreeWidget):
 			print "gpb incomplete"
 			return
 		
-		self.server.pushgpb(o)
 		
 	def open_gpb(self):
 		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename, "GPB files (*.gpb);;All files (*.*)")
