@@ -238,8 +238,8 @@ class TreeWidget(QTreeWidget):
 		self.filename=filename
 
 		
-		f=open(filename,"wb")
-		f.write(o.SerializeToString())
+		f=open(filename,"w")
+		f.write( text_format.MessageToString(o))
 		f.close()
 
 	def serverpush(self):
@@ -260,10 +260,11 @@ class TreeWidget(QTreeWidget):
 	def loadfile(self,filename):
 		self.clear_gpb()
 		self.filename=filename
-		f=open(filename,"rb")
+		f=open(filename, "r")
 		gpb=settings.new_gpb_root()
-		gpb.ParseFromString( f.read())
+		text_format.Merge( f.read(), gpb)
 		f.close()
+
 		self.create_toplevel(gpb)
 
 
