@@ -1,13 +1,32 @@
 # vim:tw=120
 # -*- coding: utf-8 -*-
+
+## @package enumeditor
+# Enum editor.
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 import __main__ 
 
+## popup editor for editting enum values.
+
 
 class EnumEditor(QWidget):
+
+	## @var namelabel
+	# the QLabel that gets the name of this field (anchor, ...)
+
+	## @var enumtypelabel
+	# the QLabel that gets the type of this field (Anchoring_flags, ...)
+
+	## @var enumpopup
+	# the QComboBox that holds the enum values
+
+	## @var widgetitem
+	# the widgetitem that we're editting with this EnumEditor
+
+	## constructor.
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)
 		vbox=QVBoxLayout(self)
@@ -30,6 +49,7 @@ class EnumEditor(QWidget):
 
 		vbox.addStretch()
 	
+	## connect tree widget to this EnumEditor.
 	def set_treewidget(self, widgetitem):
 
 		# so that the 'clear()' call does not generate an update in the widgetitem
@@ -49,6 +69,7 @@ class EnumEditor(QWidget):
 		# only now connect the widgetitem
 		self.widgetitem = widgetitem
 
+	## slot that gets called when a new enum value is picked from the popup.
 	def pick_enum(self, index):
 		if index<0 or not self.widgetitem: return # don't care about these messages
 		v = self.widgetitem.field_desc.enum_type.values_by_number.items()[index]

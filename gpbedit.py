@@ -1,6 +1,78 @@
 #!/usr/bin/env python
 # vim:tw=120
 
+## @package gpbedit
+# the main entry point for the gpb editor.
+
+## @mainpage
+# tool to graphically edit a file based on a message structure defined in a google protocol buffers format
+
+## @page interactivesession An interactive gpbedit.py session with idle
+# <pre>
+# >>> import google
+# >>> import FD
+# >>> import jdsclient_protos_pb2
+# >>> message=jdsclient_protos_pb2.ILNMessage()
+# >>> o=jdsclient_protos_pb2.PB_OBJECT()
+# >>> print getattr(o, "autohide")
+# 0
+# >>> a=jdsclient_protos_pb2.PB_AUTOSIZE()
+# >>> a
+# <jdsclient_protos_pb2.PB_AUTOSIZE object at 0xb630570c>
+# >>> a.parent_width
+# False
+# >>> a.parent_width=True
+# >>> a
+# <jdsclient_protos_pb2.PB_AUTOSIZE object at 0xb630570c>
+# >>> a.parent_width
+# True
+# >>> al=jdsclient_protos_pb2.PB_ALIGNMENT()
+# >>> al.v_align
+# 1
+# >>> al.v_align = al.LEFT
+# >>> al.v_align
+# 4
+# >>> fd = al.DESCRIPTOR
+# >>> fd
+# <google.protobuf.descriptor.Descriptor object at 0xb61ba54c>
+#
+# >>> fd.fields_by_name
+# {'v_align': <google.protobuf.descriptor.FieldDescriptor object at 0xb61ba48c>, 'h_align':
+# <google.protobuf.descriptor.FieldDescriptor object at 0xb61ba4ac>}
+# >>> fd.fields_by_name
+# {'v_align': <google.protobuf.descriptor.FieldDescriptor object at 0xb61ba48c>, 'h_align':
+# <google.protobuf.descriptor.FieldDescriptor object at 0xb61ba4ac>}
+#
+# >>> fielddescriptor=d['v_align']
+# >>> fielddescriptor
+# <google.protobuf.descriptor.FieldDescriptor object at 0xb61ba48c>
+# >>> fielddescriptor.label
+# 1
+# >>> fielddescriptor.name
+# 'v_align'
+# >>> dir(fielddescriptor)
+# ['CPPTYPE_BOOL', 'CPPTYPE_DOUBLE', 'CPPTYPE_ENUM', 'CPPTYPE_FLOAT', 'CPPTYPE_INT32', 'CPPTYPE_INT64', 'CPPTYPE_MESSAGE',
+# 'CPPTYPE_STRING', 'CPPTYPE_UINT32', 'CPPTYPE_UINT64', 'GetOptions', 'LABEL_OPTIONAL', 'LABEL_REPEATED',
+# 'LABEL_REQUIRED', 'MAX_CPPTYPE', 'MAX_LABEL', 'MAX_TYPE', 'TYPE_BOOL', 'TYPE_BYTES', 'TYPE_DOUBLE', 'TYPE_ENUM',
+# 'TYPE_FIXED32', 'TYPE_FIXED64', 'TYPE_FLOAT', 'TYPE_GROUP', 'TYPE_INT32', 'TYPE_INT64', 'TYPE_MESSAGE', 'TYPE_SFIXED32',
+# 'TYPE_SFIXED64', 'TYPE_SINT32', 'TYPE_SINT64', 'TYPE_STRING', 'TYPE_UINT32', 'TYPE_UINT64', '__class__', '__delattr__',
+# '__dict__', '__doc__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__',
+# '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_options',
+# '_options_class_name', 'containing_type', 'cpp_type', 'default_value', 'enum_type', 'extension_scope', 'full_name',
+# 'index', 'is_extension', 'label', 'message_type', 'name', 'number', 'type']
+# >>> 
+# >>> fielddescriptor.number
+# 1
+# >>> fielddescriptor.type
+# 14
+# >>> fielddescriptor.TYPE_ENUM
+# 14
+# 
+# 
+# 
+# </pre>
+# 
+
 import sys
 import SocketServer
 from PyQt4.QtGui import *
@@ -13,11 +85,28 @@ import google
 import FD
 import settings
 
+
+## tree item for items that represent a non-message field of a protobuf message object.
+#
+# this class is a subclass of QTreeWidgetItem and represents one node in the tree
 class FieldTreeItem(QTreeWidgetItem):
-	""" for tree items that represent a non-message field of a message object
-	"""
-	def __init__(self, field_desc, value= None, parent=None):
+
+	## @var field_desc 
+	# the field descriptor corresponding to this tree item.
+
+	## @var _value
+	# the value of the field, a simple python value (number, string).
+
+
+
+	## constructor
+	# @param self self
+	# @param field_desc google.protobuf.descriptor.FieldDescriptor object
+	# @param value the value of a field for instance a number, boolean or enum value
+	# @param parent QWidget parent
+	def __init__(self, field_desc, value, parent):
 		QTreeWidgetItem.__init__(self,parent, 2001)
+
 		self.field_desc = field_desc
 		if value != None:
 			self.set_value(value)
@@ -27,25 +116,30 @@ class FieldTreeItem(QTreeWidgetItem):
 			else:
 				self.set_value(field_desc.default_value)
 
+	
+	## return the value of the treewidget item.
 	def get_value(self): 
 		return self._value
 
+	## set the visible value of the treewidget item.
 	def set_value(self, value):
 		self._value=value
 		self.set_column_data()
 
+	## set what is being shown in the columns of the QTreeWidget.
 	def set_column_data(self):
 
 		fd=self.field_desc
 		t = fd.type
-		print fd.type, fd.name, fd.default_value,  self._value
 
+		# what is being shown depends on the type
 		if t == FD.STRING:
 			default_value=fd.default_value
 			if fd.label == FD.REPEATED: default_value=""
 			if self._value==None :  self._value=""
 			self.setText(5,self._value)
 		elif t==FD.ENUM:
+			# protobuf enums
 			if self._value == None: self._value = 0
 			self.setText(5,fd.enum_type.values_by_number[self._value].name)
 			if fd.label == FD.REPEATED: 
@@ -53,6 +147,7 @@ class FieldTreeItem(QTreeWidgetItem):
 			else:
 				default_value = fd.enum_type.values_by_number[fd.default_value].name
 		else:	
+			# all kinds of numbers (int, float, ...)
 			if fd.label == FD.REPEATED:
 				default_value=""
 			else:
@@ -64,14 +159,41 @@ class FieldTreeItem(QTreeWidgetItem):
 		self.setText(2, FD.label_map[fd.label].lower())
 		self.setText(4,default_value)
 		
+	## get the field name of the associated protobuf object.
 	def get_fieldname(self):
 		return self.field_desc.name
 
+## treewidget item that shows a protobuf message item.
 class MessageTreeItem(QTreeWidgetItem):
+	## @var field_desc 
+	# the field descriptor corresponding to this tree item.
 
+	## @var gpbobject
+	# the gpbobject containing the information for this tree item
+
+	## @var field
+	# the field descriptor of the field in the containing message that refers to this message. 
+	# Might be  None for the top level message.
+
+	## @var required_fields
+	# dictionary with as keys required field names and values the corresponding field descriptors
+
+	## @var optional_fields
+	# dictionary with as keys optional field names and values the corresponding field descriptors
+
+	## @var repeated_fields
+	# dictionary with as keys repeated field names and values the corresponding field descriptors
+
+
+	## constructor
+	# @param self self
+	# @param field_desc google.protobuf.descriptor.FieldDescriptor object
+	# @param field the field descriptor of the field in the containing message that refers to this message. 
+	#	Might be  None for the top level message.
+	# @param value the value of a field for instance a number, boolean or enum value
+	# @param parent QWidget parent
 	def __init__(self, field_desc, field=None, gpbobject = None, parent=None):
 		QTreeWidgetItem.__init__(self,parent, 2000)
-
 
 		self.setExpanded(True)
 		self.field_desc = field_desc
@@ -80,7 +202,9 @@ class MessageTreeItem(QTreeWidgetItem):
 
 		self.createFieldCategories()
 		if field :
+			# set text of column 0 ('name') to the name of this message field ('clocks', 'text', 'text_properties', ...)
 			self.setText(0,field.name)
+			# set text of column 2 ('kind') to repeated, required or optional
 			self.setText(2,FD.label_map[field.label].lower())
 		else:	
 			self.setText(0,"^^^")
@@ -119,9 +243,11 @@ class MessageTreeItem(QTreeWidgetItem):
 		if not self.field : return None
 		return self.field.name
 
+	## create the tree dictionaries with fields of this message type. 
+	#
+	# each MessageTreeItem has three dictionairies, required_fields, optional_fields and repeated_fields.
+	#
 	def createFieldCategories(self):
-		""" create the tree dictionaries with fields of this message type
-		"""
 		self.required_fields={}
 		self.optional_fields={}
 		self.repeated_fields={}
@@ -136,12 +262,18 @@ class MessageTreeItem(QTreeWidgetItem):
 				print "unknown label"
 				sys.exit(1)
 
+	## add a new child to a MessageTreeItem.
+	# @param fieldname the name of the field that gets created.
 	def add_child(self, fieldname):
+		# fist find where in the widget tree to insert a new widgetitem.
+		# preceding is a list of all items with name <fieldname>
 		preceding = self.find_children_by_name(fieldname)
-		if preceding: preceding=preceding[-1] # last child
+		if preceding: preceding=preceding[-1] # last child, we append our new item after this one
+
+		# get the field descriptor for the new item.
 		fd=self.field_desc.fields_by_name[fieldname]
 
-		print "fd=",fd, fd.default_value
+		# create a new tree item depending on the type of the field descriptor.
 		if fd.type == FD.MESSAGE :  
 			c=MessageTreeItem(fd.message_type, fd, None, self)
 		else:	
@@ -151,6 +283,9 @@ class MessageTreeItem(QTreeWidgetItem):
 
 
 		
+	## move a new TreeWidget to its correct place. Also used for moving an item up or down.
+	# @param child the child that needs to be moved
+	# @param precedingchild the child after which we want to put the new child.
 	def move_child(self, child, precedingchild):
 		if not child.parent() : return
 		p=child.parent()
@@ -165,11 +300,17 @@ class MessageTreeItem(QTreeWidgetItem):
 		child.treeWidget().setCurrentItem(child)	
 		self.treeWidget().emit_gpbupdate()
 
+
+	## find siblings with same fieldname.
+	# @return a list of siblings with the same field name. 
 	def find_same_type_siblings(self):
 		if not self.parent() : 
 			return []
 		return self.parent().find_children_by_name( self.field.name) 
 
+	## Check if this child can be moved up or down.
+	# @param dir 1:can child be moved down? -1: can sibling be moved up?
+	# @return True if sibling can be moved up, False not.
 	def move_by_one_enabled(self,dir):
 		s = self.find_same_type_siblings()
 		if not s or len(s)==1: 
@@ -179,6 +320,8 @@ class MessageTreeItem(QTreeWidgetItem):
 			return None
 		return s
 		
+	## move sibling by one in hierarchy.
+	# @param dir 1 up -1 down
 	def move_by_one(self, dir):
 		s = self.move_by_one_enabled(dir)
 		if not s: return
@@ -190,16 +333,20 @@ class MessageTreeItem(QTreeWidgetItem):
 		self.treeWidget().emit_gpbupdate()
 
 
+	## return a list of treeitem children of a certain name. This is used for repeating items.
+	# @param name the childs name you're looking for.
 	def find_children_by_name(self,name):
 		children=[]
 		for i in xrange(self.childCount()):
 			c=self.child(i)
 			if c.get_fieldname() == name :
 				children.append(c)
-		#print "find_children_by_name(",name,")=",children			
 		return children
 		
 
+	## get first child with fieldname name.
+	# @param name the name we're looling for.
+	# @return Child or none.
 	def find_child_by_name(self,name):
 		for i in xrange(self.childCount()):
 			c=self.child(i)
@@ -208,6 +355,7 @@ class MessageTreeItem(QTreeWidgetItem):
 		return None
 
 		
+## tree for whole gpb message.
 class TreeWidget(QTreeWidget):
 	""" The container tree for all the gpb objects that we have created/destroyed
 	"""
@@ -220,6 +368,7 @@ class TreeWidget(QTreeWidget):
 		"""
 		self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self)
 
+	## save the internal tree to a gpb text file.
 	def save_gpb(self):
 
 		o=settings.new_gpb_root()
@@ -242,21 +391,15 @@ class TreeWidget(QTreeWidget):
 		f.write( text_format.MessageToString(o))
 		f.close()
 
-	def serverpush(self):
-		o=settings.new_gpb_root()
-		topmessage=self.topLevelItem(0)
-		buildgpb.Builder( o, topmessage )
-
-		if not o.IsInitialized() : 
-			print "gpb incomplete"
-			return
 		
-		
+	## load a text gpb file into the tree widget.
 	def open_gpb(self):
 		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename, "GPB files (*.gpb);;All files (*.*)")
 		if not filename: return
 		self.loadfile(filename)
 
+	## load a text gpb file into the tree widget.
+	# @param filename the name of the text based protobuf file.
 	def loadfile(self,filename):
 		self.clear_gpb()
 		self.filename=filename
@@ -268,18 +411,22 @@ class TreeWidget(QTreeWidget):
 		self.create_toplevel(gpb)
 
 
+	
+	## clear the whole tree.
 	def clear_gpb(self):
 		global editwidget
 		editwidget.no_edit()
-		#c= self.topLevelItem(0)
 		self.invisibleRootItem().removeChild( self.topLevelItem(0))
 	
+	## clear tree and insert the toplevel item.
+	# @param gpb toplevel object or nothing.
 	def create_toplevel(self, gpb=None):
 		top=MessageTreeItem(settings.gpb_root_descriptor(), None, gpb)
 		self.addTopLevelItem(top)
 		self.expandItem(top)
 		self.emit_gpbupdate()
 	
+	## start new empty tree.
 	def start_with_empty_toplevel(self):
 		self.clear_gpb()
 		self.create_toplevel()
@@ -328,8 +475,6 @@ if __name__ == "__main__":
 	openbutton=QPushButton("&open gpb file", mainwindow)
 	rightvbox.addWidget(openbutton)
 
-	serverpush=QPushButton("&tcp push ", mainwindow)
-	rightvbox.addWidget(serverpush)
 
 
 	QObject.connect( treewidget, SIGNAL("gpbobject_updated(PyQt_PyObject)"), debugwidget.slot_gpbobject_updated)
@@ -337,7 +482,6 @@ if __name__ == "__main__":
 	QObject.connect(savebutton, SIGNAL("clicked()"), treewidget.save_gpb)	
 	QObject.connect(openbutton, SIGNAL("clicked()"), treewidget.open_gpb)	
 	QObject.connect(clearbutton, SIGNAL("clicked()"), treewidget.start_with_empty_toplevel)	
-	QObject.connect(serverpush, SIGNAL("clicked()"), treewidget.serverpush)	
 
 	editwidget.make_connections(treewidget)
 

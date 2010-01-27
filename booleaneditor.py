@@ -1,12 +1,31 @@
 # vim:tw=120
 # -*- coding: utf-8 -*-
+
+## @package booleaneditor
+# Boolean editor.
+
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 import FD
 
+## checkbox editor for editting boolean values.
+
 class BooleanEditor(QWidget):
+	## @var namelabel
+	# the QLabel that gets the name of this field (anchor, ...)
+
+	## @var typelabel
+	# the QLabel that gets the type of this field (Anchoring_flags, ...)
+
+	## @var checkbox
+	# the QCheckBox that holds the boolean value
+
+	## @var widgetitem
+	# the widgetitem that we're editting with this EnumEditor
+
+	## constructor.
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)
 		vbox=QVBoxLayout(self)
@@ -28,6 +47,7 @@ class BooleanEditor(QWidget):
 		QObject.connect(self.checkbox, SIGNAL("stateChanged(int)"),
 			self.editFinished)
 
+	## connect tree widget to this BooleanEditor
 	def set_treewidget(self, widgetitem):
 		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
@@ -43,6 +63,7 @@ class BooleanEditor(QWidget):
 		
 		self.checkbox.setFocus()	
 
+	## slot that gets called when the checkbox changes value.
 	def editFinished(self, state) :
 		v = self.checkbox.checkState()
 		if v : v=1

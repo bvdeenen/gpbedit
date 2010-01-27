@@ -8,10 +8,22 @@ from PyQt4.QtCore import *
 
 global loadfile, settings_file_name
 loadfile=None
+
+## @var settings_file_name
+# the global name of the settings file (.gpbedit) in the current working directory.
 settings_file_name=  ".gpbedit"
 sys.path.append('.')
 
+
+## a dialog that shows a QComboBox for picking the toplevel message (typically ILNMessage )
 class ConfigDialog(QDialog):
+
+	## @var messagewidget
+	# the QComboBox that shows a popup of all message types.
+	
+	## constructor.
+	# @param messages a list of Message types from the protocol file.
+	# @param parent QWidget parent (typically None).
 	def __init__(self, messages, parent=None):
 		QDialog.__init__(self, parent)
 		layout = QVBoxLayout()
@@ -23,9 +35,15 @@ class ConfigDialog(QDialog):
 		self.setLayout(layout)
 		self.setWindowTitle("Pick a main message type")
 
+	## which message got picked.
+	# @return the value of the QComboBox
+	# @todo We really should add an ok button or something, instead of just hitting the close X.
+
 	def get_picked_message(self):
 		return self.messagewidget.currentText()
 
+
+## create a .gpbedit file in the current working directory.
 def create_settings_file():
 	global rootmessage, loadfile, settings_file_name
 	qstrlist = QFileDialog.getOpenFileNames(None, "pick at least one .proto file", "", "proto files (*.proto)")

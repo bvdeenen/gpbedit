@@ -1,11 +1,16 @@
 # vim:tw=120
 # -*- coding: utf-8 -*-
+
+## @package messageeditor
+# item editor for message type items. Shows popups for adding and removing optional and repeated fields.
+
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import FD
 
 
+## item editor for message type items. Shows popups for adding and removing optional and repeated fields.
 class MessageEditor(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)

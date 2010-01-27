@@ -1,12 +1,32 @@
 # vim:tw=120
 # -*- coding: utf-8 -*-
+
+## @package valueeditor
+# Value editor. @see ValueEditor
+
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 import FD
 
+## editor for entering values (numbers, strings). 
+# handles validation for floats, integers, strings.
 class ValueEditor(QWidget):
+
+	## @var widgetitem
+	# the widget item that gets and sets the value of this ValueEditor
+
+	## @var namelabel
+	# the QLabel that holds the name of the field (id, width, ...)
+
+	## @var typelabel
+	# the QLabel that holds the type of the field (STRING, INT32, FLOAT, ...)
+
+	## @var editbox
+	# the QLineEdit that does the actual editting
+
+	## constructor
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)
 		vbox=QVBoxLayout(self)
@@ -30,6 +50,7 @@ class ValueEditor(QWidget):
 		QObject.connect(self.editbox, SIGNAL("returnPressed()"),
 			self.editFinished)
 
+	## hook up the ValueEditor with the TreeWidget item.
 	def set_treewidget(self, widgetitem):
 		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
@@ -44,21 +65,18 @@ class ValueEditor(QWidget):
 		else:	
 			self.editbox.setText( unicode(widgetitem.get_value()))
 
-		print fd.type
 		if T in [FD.DOUBLE, FD.FLOAT] :
-			print "QDoubleValidator"
 			self.editbox.setValidator( QDoubleValidator(self.editbox))
 		elif T in [FD.UINT32, FD.UINT64]:
 			self.editbox.setValidator( QIntValidator(self.editbox0, 0x7fffffff))
-			print "QIntValidator"
 		elif T != FD.STRING:
 			self.editbox.setValidator( QIntValidator(self.editbox))
-			print "QIntValidator"
 		else:
 			self.editbox.setValidator(None)
 		self.editbox.selectAll()
 		self.editbox.setFocus()	
 
+	## slot that is called on pressing enter.
 	def editFinished(self) :
 		v = unicode(self.editbox.text())
 		fd = self.widgetitem.field_desc
