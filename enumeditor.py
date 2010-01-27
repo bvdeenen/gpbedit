@@ -41,17 +41,17 @@ class EnumEditor(QWidget):
 		self.namelabel.setText(fd.name)
 		self.enumtypelabel.setText(fd.enum_type.name)
 
-		for key,value in fd.enum_type.values_by_number.items():
+		for index,(key,value) in enumerate(fd.enum_type.values_by_number.items()):
 			self.enumpopup.addItem("%d %s" %( value.number, value.name))
 			if  value.number == widgetitem.get_value():
-				self.enumpopup.setCurrentIndex(key)
+				self.enumpopup.setCurrentIndex(index)
 	
 		# only now connect the widgetitem
 		self.widgetitem = widgetitem
 
 	def pick_enum(self, index):
 		if index<0 or not self.widgetitem: return # don't care about these messages
-		v = self.widgetitem.field_desc.enum_type.values_by_number[index]
-		self.widgetitem.set_value( v.number)
+		v = self.widgetitem.field_desc.enum_type.values_by_number.items()[index]
+		self.widgetitem.set_value( v[0])
 		self.widgetitem.treeWidget().emit_gpbupdate()
 
