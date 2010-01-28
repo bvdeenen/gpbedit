@@ -5,10 +5,10 @@ from google.protobuf.descriptor import FieldDescriptor
 
 global type_map, label_map
 
-## @package FD
+## @file FD.py
 # build dictionaries with value:name pairs for constants in a field object.
-
-## @var typemap
+# <pre>
+# global type_map
 #  1  : 'DOUBLE',
 #  2  : 'FLOAT',
 #  3  : 'INT64',
@@ -27,12 +27,12 @@ global type_map, label_map
 #  16 : 'SFIXED64',
 #  17 : 'SINT32',
 #  18 : 'SINT64'
-#  
-## @var  labelmap
+#
+# global  label_map
 #  1  : 'OPTIONAL',
 #  2  : 'REQUIRED',
 #  3  : 'REPEATED'
-
+# </pre>
 
 
 ## create the mappings.
@@ -59,12 +59,6 @@ def init():
 #['BOOL', 'BYTES', 'DOUBLE', 'ENUM', 'FIXED32', 'FIXED64', 'FLOAT', 'FieldDescriptor', 'GROUP', 'INT32', 'INT64',
 #'MESSAGE', 'OPTIONAL', 'REPEATED', 'REQUIRED', 'SFIXED32', 'SFIXED64', 'SINT32', 'SINT64', 'STRING', 'UINT32', 'UINT64',
 #'__builtins__', '__doc__', '__file__', '__name__', '__package__', 'create_value_map', 'init', 'label_map', 'type_map']
-#>>> fd.BOOL
-#
-#Traceback (most recent call last):
-#  File "<pyshell#3>", line 1, in <module>
-#    fd.BOOL
-#NameError: name 'fd' is not defined
 #>>> FD.BOOL
 #8
 #>>> FD.type_map

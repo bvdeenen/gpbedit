@@ -190,7 +190,9 @@ class MessageTreeItem(QTreeWidgetItem):
 	# @param field_desc google.protobuf.descriptor.FieldDescriptor object
 	# @param field the field descriptor of the field in the containing message that refers to this message. 
 	#	Might be  None for the top level message.
-	# @param value the value of a field for instance a number, boolean or enum value
+	# @param gpbobject the optional gpb message object that is used to create this MessageTreeItem .
+	#    The presence of this parameter will recursively create more FieldTreeItem and MessageTreeItem instances
+	# until all the stuff in the gpbobject is exhausted
 	# @param parent QWidget parent
 	def __init__(self, field_desc, field=None, gpbobject = None, parent=None):
 		QTreeWidgetItem.__init__(self,parent, 2000)

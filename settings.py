@@ -35,6 +35,17 @@ class ConfigDialog(QDialog):
 		self.setLayout(layout)
 		self.setWindowTitle("Pick a main message type")
 
+		hl= QHBoxLayout()
+		hl.addStretch()
+
+		closebutton=QPushButton(self)
+		closebutton.setText("&Choose")
+		closebutton.setDefault(True)
+		hl.addWidget(closebutton)
+
+		layout.addLayout(hl)
+		QObject.connect(closebutton, SIGNAL("clicked()"), self.accept)
+
 	## which message got picked.
 	# @return the value of the QComboBox
 	# @todo We really should add an ok button or something, instead of just hitting the close X.
@@ -68,10 +79,23 @@ def create_settings_file():
 	config.add_section("proto")
 	config.set("proto", "protofiles", protofiles)
 	config.set("proto", "rootmessage", d.get_picked_message())
+	config.set("proto", "#loadfile", "<fill in your filename>")
 	configfile=open(settings_file_name, "wb")
 	config.write(configfile)
 	configfile.close()
 
+
+	info = QString("""
+<html><body>
+Created file <tt>%1</tt> in directory <tt>%2</tt>
+using protofiles: <tt>%3</tt> <br>and toplevel message <tt>%4</tt>. 
+<p>If you want to automatically load a gpb file next time
+you run gpbedit.py add 
+<pre>loadfile=&lt;filename&gt;</pre> to <tt>%1</tt>
+</body></html>""").arg( ".gpbedit").arg( os.path.abspath(os.path.curdir)).arg(protofiles).arg(d.get_picked_message())
+
+
+	msgbox = QMessageBox.information(None, "settings file created", info)
 
 
 	
@@ -108,6 +132,7 @@ def compile_protofiles(protofiles):
 		if status :
 			print cmd,"had error", output
 			sys.exit(1)
+
 def import_proto():
 	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
