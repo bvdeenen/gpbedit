@@ -10,20 +10,20 @@ from PyQt4.QtCore import *
 
 import FD
 
-## checkbox editor for editting boolean values.
-
+## @brief checkbox editor for editting boolean values.
 class BooleanEditor(QWidget):
 	## @var namelabel
-	# the QLabel that gets the name of this field (anchor, ...)
+	# the QLabel that gets the name of this field.
+	# typical values: antialias, synchronous, last, parent_width, ...
 
 	## @var typelabel
-	# the QLabel that gets the type of this field (Anchoring_flags, ...)
+	# the QLabel that gets the type of this field ('BOOL')
 
 	## @var checkbox
-	# the QCheckBox that holds the boolean value
+	# the QCheckBox that holds the boolean value.
 
 	## @var widgetitem
-	# the widgetitem that we're editting with this EnumEditor
+	# the widgetitem that we're editting with this EnumEditor.
 
 	## constructor.
 	def __init__(self, parent=None):
@@ -47,7 +47,7 @@ class BooleanEditor(QWidget):
 		QObject.connect(self.checkbox, SIGNAL("stateChanged(int)"),
 			self.editFinished)
 
-	## connect tree widget to this BooleanEditor
+	## connect tree widget to this BooleanEditor.
 	def set_treewidget(self, widgetitem):
 		self.widgetitem = widgetitem
 		fd = widgetitem.field_desc
@@ -60,16 +60,14 @@ class BooleanEditor(QWidget):
 		else:	
 			self.checkbox.setCheckState( Qt.Unchecked)
 
-		
 		self.checkbox.setFocus()	
 
 	## slot that gets called when the checkbox changes value.
+	# @param state unused
 	def editFinished(self, state) :
 		v = self.checkbox.checkState()
 		if v : v=1
-
 		self.widgetitem.set_value(v)
-
 		self.widgetitem.treeWidget().emit_gpbupdate()
 
 

@@ -15,18 +15,20 @@ import FD
 class ValueEditor(QWidget):
 
 	## @var widgetitem
-	# the widget item that gets and sets the value of this ValueEditor
+	# the widget item that gets and sets the value of this ValueEditor.
 
 	## @var namelabel
-	# the QLabel that holds the name of the field (id, width, ...)
+	# the QLabel that holds the name of the field.
+	# Typical values: id, width, ...
 
 	## @var typelabel
-	# the QLabel that holds the type of the field (STRING, INT32, FLOAT, ...)
+	# the QLabel that holds the type of the field 
+	# Typical values: STRING, INT32, FLOAT, ...
 
 	## @var editbox
-	# the QLineEdit that does the actual editting
+	# the QLineEdit that does the actual editting.
 
-	## constructor
+	## constructor.
 	def __init__(self, parent=None):
 		QWidget.__init__(self,parent)
 		vbox=QVBoxLayout(self)

@@ -10,21 +10,21 @@ from PyQt4.QtCore import *
 import __main__ 
 
 ## popup editor for editting enum values.
-
-
 class EnumEditor(QWidget):
 
 	## @var namelabel
-	# the QLabel that gets the name of this field (anchor, ...)
+	# the QLabel that gets the name of this field.
+	# Typical values: anchor, frametype, ...
 
 	## @var enumtypelabel
-	# the QLabel that gets the type of this field (Anchoring_flags, ...)
+	# the QLabel that gets the type of this field.
+	# Typical values:Anchoring_flags, Frametype, ...
 
 	## @var enumpopup
-	# the QComboBox that holds the enum values
+	# the QComboBox that holds the enum values.
 
 	## @var widgetitem
-	# the widgetitem that we're editting with this EnumEditor
+	# the widgetitem that we're editting with this EnumEditor.
 
 	## constructor.
 	def __init__(self, parent=None):

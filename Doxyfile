@@ -137,7 +137,7 @@ SHORT_NAMES            = NO
 # comments will behave just like regular Qt-style comments 
 # (thus requiring an explicit @brief command for a brief description.)
 
-JAVADOC_AUTOBRIEF      = NO
+JAVADOC_AUTOBRIEF      = YES
 
 # If the QT_AUTOBRIEF tag is set to YES then Doxygen will 
 # interpret the first line (until the first dot) of a Qt-style 
@@ -145,7 +145,7 @@ JAVADOC_AUTOBRIEF      = NO
 # will behave just like regular Qt-style comments (thus requiring 
 # an explicit \brief command for a brief description.)
 
-QT_AUTOBRIEF           = NO
+QT_AUTOBRIEF           = YES
 
 # The MULTILINE_CPP_IS_BRIEF tag can be set to YES to make Doxygen 
 # treat a multi-line C++ special comment block (i.e. a block of //! or /// 
@@ -193,7 +193,7 @@ OPTIMIZE_OUTPUT_FOR_C  = NO
 # Java. For instance, namespaces will be presented as packages, qualified 
 # scopes will look different, etc.
 
-OPTIMIZE_OUTPUT_JAVA   = NO
+OPTIMIZE_OUTPUT_JAVA   = YES
 
 # Set the OPTIMIZE_FOR_FORTRAN tag to YES if your project consists of Fortran 
 # sources only. Doxygen will then generate output that is more tailored for 
@@ -378,7 +378,7 @@ CASE_SENSE_NAMES       = YES
 # will show members with their full class and namespace scopes in the 
 # documentation. If set to YES the scope will be hidden.
 
-HIDE_SCOPE_NAMES       = NO
+HIDE_SCOPE_NAMES       = YES
 
 # If the SHOW_INCLUDE_FILES tag is set to YES (the default) then Doxygen 
 # will put a list of the files that are included by a file in the documentation 
@@ -431,7 +431,7 @@ GENERATE_TODOLIST      = YES
 # disable (NO) the test list. This list is created by putting \test 
 # commands in the documentation.
 
-GENERATE_TESTLIST      = YES
+GENERATE_TESTLIST      = NO
 
 # The GENERATE_BUGLIST tag can be used to enable (YES) or 
 # disable (NO) the bug list. This list is created by putting \bug 
@@ -483,7 +483,7 @@ SHOW_FILES             = YES
 # This will remove the Namespaces entry from the Quick Index 
 # and from the Folder Tree View (if specified). The default is YES.
 
-SHOW_NAMESPACES        = YES
+SHOW_NAMESPACES        = NO
 
 # The FILE_VERSION_FILTER tag can be used to specify a program or script that 
 # doxygen should invoke to get the current version for each file (typically from 
@@ -607,7 +607,7 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories 
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = 
+EXCLUDE_PATTERNS       =  *_pb2.py
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names 
 # (namespaces, classes, functions, etc.) that should be excluded from the 
@@ -680,12 +680,12 @@ FILTER_SOURCE_FILES    = NO
 # Note: To get rid of all source code in the generated output, make sure also 
 # VERBATIM_HEADERS is set to NO.
 
-SOURCE_BROWSER         = NO
+SOURCE_BROWSER         = YES
 
 # Setting the INLINE_SOURCES tag to YES will include the body 
 # of functions and classes directly in the documentation.
 
-INLINE_SOURCES         = NO
+INLINE_SOURCES         = YES
 
 # Setting the STRIP_CODE_COMMENTS tag to YES (the default) will instruct 
 # doxygen to hide any special comment blocks from generated source code 
@@ -697,13 +697,13 @@ STRIP_CODE_COMMENTS    = YES
 # then for each documented function all documented 
 # functions referencing it will be listed.
 
-REFERENCED_BY_RELATION = NO
+REFERENCED_BY_RELATION = YES
 
 # If the REFERENCES_RELATION tag is set to YES 
 # then for each documented function all documented entities 
 # called/used by that function will be listed.
 
-REFERENCES_RELATION    = NO
+REFERENCES_RELATION    = YES
 
 # If the REFERENCES_LINK_SOURCE tag is set to YES (the default) 
 # and SOURCE_BROWSER tag is set to YES, then the hyperlinks from 
@@ -811,7 +811,7 @@ HTML_ALIGN_MEMBERS     = YES
 # JavaScript and DHTML is required (for instance Mozilla 1.0+, Firefox 
 # Netscape 6.0+, Internet explorer 5.0+, Konqueror, or Safari).
 
-HTML_DYNAMIC_SECTIONS  = NO
+HTML_DYNAMIC_SECTIONS  = YES
 
 # If the GENERATE_DOCSET tag is set to YES, additional index files 
 # will be generated that can be used as input for Apple's Xcode 3 
@@ -958,7 +958,7 @@ ENUM_VALUES_PER_LINE   = 4
 # releases of Doxygen, the values YES and NO are equivalent to FRAME and NONE 
 # respectively.
 
-GENERATE_TREEVIEW      = NONE
+GENERATE_TREEVIEW      = ALL
 
 # If the treeview is enabled (see GENERATE_TREEVIEW) then this tag can be 
 # used to set the initial width (in pixels) of the frame in which the tree 

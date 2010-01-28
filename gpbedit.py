@@ -280,6 +280,8 @@ class MessageTreeItem(QTreeWidgetItem):
 			c=FieldTreeItem(fd, None, self)
 		
 		self.move_child(c, preceding)
+		editwidget.slot_treeitem_click(c,0)
+		
 
 
 		
@@ -357,15 +359,13 @@ class MessageTreeItem(QTreeWidgetItem):
 		
 ## tree for whole gpb message.
 class TreeWidget(QTreeWidget):
-	""" The container tree for all the gpb objects that we have created/destroyed
-	"""
+	## The container tree for all the gpb objects that we have created/destroyed.
 	def __init__(self, parent=None):
 		QTreeWidget.__init__(self, parent)
 		self.filename = ""
 
+	## TreeWidget will emit an gpbobject_updated signal.
 	def emit_gpbupdate(self):
-		""" our gpb object(s) have changed
-		"""
 		self.emit(SIGNAL("gpbobject_updated(PyQt_PyObject)"), self)
 
 	## save the internal tree to a gpb text file.
