@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 # vim:tw=120
 
+## @file settings.py create or read the file \c .gpbedit in the current directory 
+
 import sys, commands, os.path, ConfigParser
 import google
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 global loadfile, settings_file_name
+
+## @var loadfile
+# variable picked from the .gpbedit settings file for loading the gpb file.
 loadfile=None
 
 ## @var settings_file_name
@@ -99,6 +104,7 @@ you run gpbedit.py add
 
 
 	
+## load information from .gpbedit in the current directory	
 def read_settings_file():
 	global rootmessage, loadfile, settings_file_name
 	config = ConfigParser.RawConfigParser( {'loadfile':None})
@@ -120,6 +126,8 @@ def read_settings_file():
 	compile_protofiles(protofiles)
 	import_proto()
 	
+## use protoc protobuf compiler to create _pb2.py files.
+# @param protofiles list of protocol files
 def compile_protofiles(protofiles):	
 	for p in protofiles.split("||"):
 		cmd="protoc --python_out=. -I\"%s\" \"%s\"" % (os.path.dirname(p), os.path.abspath(p))
@@ -133,26 +141,42 @@ def compile_protofiles(protofiles):
 			print cmd,"had error", output
 			sys.exit(1)
 
+
+## import the _pb2 file into the FD namespace.
+# uses rootmessage typically something like jdsclient_protos_pb2.ILNMessage.
+
 def import_proto():
 	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
 
+	# import the module into the FD namespace
 	gpb_module = __import__(module)
 	all_module_members = map(lambda n: (n,type( getattr(gpb_module,n))), dir(gpb_module))
+
+	return
+
+	# the code below shows how to get all the messages inside the module.
+	# just for information.
 	messages = [(name) for name,t  in all_module_members \
 		if t == google.protobuf.reflection.GeneratedProtocolMessageType]
-	#print messages
+	print messages
 
+## get protobuf DESCRIPTOR by name
+# @return the DESCRIPTOR object
 def get_descriptor(name):
 	global gpb_module
 	d= getattr(gpb_module, name)
 	return d.DESCRIPTOR
 	
+## get protobuf root DESCRIPTOR by name
+# @return the DESCRIPTOR object
 def gpb_root_descriptor():
 	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
 	return get_descriptor(message)
 
+## make a new gpb root, with no contents.
+# @return the gpb object
 def new_gpb_root():
 	global gpb_module, rootmessage
 	module, message = rootmessage.split(".")
@@ -161,8 +185,3 @@ def new_gpb_root():
 	
 
 
-if __name__ == '__main__':
-	app = QApplication(sys.argv)
-	mainwindow=QWidget()
-	mainwindow.show()
-	read_settings_file()

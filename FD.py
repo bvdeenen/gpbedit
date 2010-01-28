@@ -4,11 +4,13 @@
 from google.protobuf.descriptor import FieldDescriptor
 
 global type_map, label_map
+type_map={}
+label_map={}
 
 ## @file FD.py
 # build dictionaries with value:name pairs for constants in a field object.
-# <pre>
-# global type_map
+
+## @var type_map
 #  1  : 'DOUBLE',
 #  2  : 'FLOAT',
 #  3  : 'INT64',
@@ -27,12 +29,11 @@ global type_map, label_map
 #  16 : 'SFIXED64',
 #  17 : 'SINT32',
 #  18 : 'SINT64'
-#
-# global  label_map
+
+## @var label_map
 #  1  : 'OPTIONAL',
 #  2  : 'REQUIRED',
 #  3  : 'REPEATED'
-# </pre>
 
 
 ## create the mappings.
