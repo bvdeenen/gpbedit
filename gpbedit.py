@@ -85,6 +85,34 @@ import google
 import FD
 import settings
 
+global wanted_type
+wanted_type="PB_OBJECT"
+global wanted_field
+wanted_field="id"
+
+## scan object m looking for a certain field of a certain message
+def scan(m):
+	if not m : return ""
+	for fd, o in m.ListFields():
+		if fd.type == FD.MESSAGE :  
+			if fd.label==FD.REPEATED :
+				for i in range(len(o)):
+					o1=getattr(m,fd.name)[i]
+					return scan(o1)
+			else:		
+				o1=getattr(m,fd.name)
+				return scan(o1)
+		else:
+			if m.DESCRIPTOR.name == settings.id_message:
+				if fd.label == FD.REPEATED:
+					for i in range(len(o)):
+						o1=getattr(m, fd.name)[i]
+						if fd.name==settings.id_field:
+							return o1
+				else:
+					if fd.name==settings.id_field:
+						return o
+	return ""				
 
 ## tree item for items that represent a non-message field of a protobuf message object.
 #
@@ -208,11 +236,13 @@ class MessageTreeItem(QTreeWidgetItem):
 			self.setText(0,field.name)
 			# set text of column 2 ('kind') to repeated, required or optional
 			self.setText(2,FD.label_map[field.label].lower())
+			self.setText(5, scan(gpbobject))
 		else:	
 			self.setText(0,"^^^")
 
 			
 		self.setText(1,self.field_desc.name)
+
 
 		if self.gpbobject:
 			# we're constructing this object from an existing gpb object
@@ -393,12 +423,15 @@ class TreeWidget(QTreeWidget):
 		f.write( text_format.MessageToString(o))
 		f.close()
 
+		settings.update_settings_file(loadfile=filename)
+
 		
 	## load a text gpb file into the tree widget.
 	def open_gpb(self):
 		filename = QFileDialog.getOpenFileName(self, "open gpb file", self.filename, "GPB files (*.gpb);;All files (*.*)")
 		if not filename: return
 		self.loadfile(filename)
+		settings.update_settings_file(loadfile=filename)
 
 	## load a text gpb file into the tree widget.
 	# @param filename the name of the text based protobuf file.

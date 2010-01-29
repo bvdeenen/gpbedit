@@ -7,6 +7,9 @@ import sys, commands, os.path, ConfigParser
 import google
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+import FD
+
+FD.init()
 
 global loadfile, settings_file_name
 
@@ -29,16 +32,37 @@ class ConfigDialog(QDialog):
 	## constructor.
 	# @param messages a list of Message types from the protocol file.
 	# @param parent QWidget parent (typically None).
-	def __init__(self, messages, parent=None):
+	def __init__(self, messages, module, parent=None):
 		QDialog.__init__(self, parent)
+		self.setWindowTitle("Pick a main message type")
+		self.module=module
+
 		layout = QVBoxLayout()
+		self.setLayout(layout)
+
+		label=QLabel()
+		label.setText("Pick a main message as a container for all the other messages")
+		layout.addWidget(label)
 
 		self.messagewidget = QComboBox()
-
 		for m in messages: self.messagewidget.addItem(m)
 		layout.addWidget(self.messagewidget)
-		self.setLayout(layout)
-		self.setWindowTitle("Pick a main message type")
+
+
+		label=QLabel()
+		label.setText("Pick a main message and field for object identification")
+		layout.addWidget(label)
+
+		self.idmessagewidget = QComboBox()
+		self.idmessagewidget.addItem("")
+		for m in messages: self.idmessagewidget.addItem(m)
+		layout.addWidget(self.idmessagewidget)
+		QObject.connect(self.idmessagewidget, SIGNAL("currentIndexChanged(int)"),
+			self.update_fields_widget)
+
+		self.fieldswidget = QComboBox()
+		layout.addWidget(self.fieldswidget)
+
 
 		hl= QHBoxLayout()
 		hl.addStretch()
@@ -51,12 +75,28 @@ class ConfigDialog(QDialog):
 		layout.addLayout(hl)
 		QObject.connect(closebutton, SIGNAL("clicked()"), self.accept)
 
+	def update_fields_widget(self):
+		self.fieldswidget.clear()
+		messagetype = str(self.idmessagewidget.currentText())
+		m, message = messagetype.split(".")
+		ff=getattr(self.module, message).DESCRIPTOR.fields
+		for x in ff:
+			if x.type != FD.MESSAGE:
+				self.fieldswidget.addItem(x.name)
+
 	## which message got picked.
 	# @return the value of the QComboBox
 	# @todo We really should add an ok button or something, instead of just hitting the close X.
 
 	def get_picked_message(self):
 		return self.messagewidget.currentText()
+
+	def get_id_info(self):
+		if self.idmessagewidget.currentText() :
+			m, message = str( self.idmessagewidget.currentText()).split(".")
+			return ( message , str(self.fieldswidget.currentText()))
+		else:
+			return ( "", "")
 
 
 ## create a .gpbedit file in the current working directory.
@@ -75,7 +115,7 @@ def create_settings_file():
 		all_messages.extend( [modulename+"."+name for name,t  in all_module_members \
 			if t == google.protobuf.reflection.GeneratedProtocolMessageType])
 
-	d = ConfigDialog(all_messages)
+	d = ConfigDialog(all_messages, M)
 	r=d.exec_()
 
 	
@@ -85,6 +125,11 @@ def create_settings_file():
 	config.set("proto", "protofiles", protofiles)
 	config.set("proto", "rootmessage", d.get_picked_message())
 	config.set("proto", "#loadfile", "<fill in your filename>")
+
+	id_info = d.get_id_info()
+
+	config.set("proto", "id_message", id_info[0])
+	config.set("proto", "id_field", id_info[1])
 	configfile=open(settings_file_name, "wb")
 	config.write(configfile)
 	configfile.close()
@@ -106,7 +151,8 @@ you run gpbedit.py add
 	
 ## load information from .gpbedit in the current directory	
 def read_settings_file():
-	global rootmessage, loadfile, settings_file_name
+	global rootmessage, loadfile, settings_file_name, id_message, id_field
+	
 	config = ConfigParser.RawConfigParser( {'loadfile':None})
 	try:
 		okfiles = config.read(settings_file_name)
@@ -122,10 +168,33 @@ def read_settings_file():
 		loadfile=None
 	protofiles=config.get('proto', 'protofiles')
 	rootmessage=config.get('proto', 'rootmessage')
+	id_message=config.get("proto", "id_message")
+	id_field=config.get("proto", "id_field")
 
 	compile_protofiles(protofiles)
 	import_proto()
 	
+## update settings file.
+def update_settings_file(loadfile=None):
+	print "update_settings_file", loadfile
+	global rootmessage, settings_file_name, id_message, id_field
+	
+	config = ConfigParser.RawConfigParser( )
+	try:
+		okfiles = config.read(settings_file_name)
+		if not okfiles:
+			raise Exception()
+	except:
+		create_settings_file()
+		okfiles = config.read(settings_file_name)
+
+	if loadfile:
+		config.set("proto", "loadfile", loadfile)
+	
+	configfile=open(settings_file_name, "wb")
+	config.write(configfile)
+	configfile.close()
+
 ## use protoc protobuf compiler to create _pb2.py files.
 # @param protofiles list of protocol files
 def compile_protofiles(protofiles):	
